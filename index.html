@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Files — Printer Growth</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f5f0e8; font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+    .nav { background: #fff; border-bottom: 1px solid #e8e2d8; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo { font-family: 'Lora', serif; font-size: 18px; color: #1a1208; text-decoration: none; }
+    .nav-login { font-size: 13px; color: #7a6a55; text-decoration: none; }
+    .container { max-width: 860px; margin: 0 auto; padding: 40px 24px; }
+    .order-header { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+    .order-eyebrow { color: #a89880; font-size: 12px; margin-bottom: 4px; }
+    .order-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 700; color: #1a1208; }
+    .order-meta { display: flex; gap: 16px; color: #7a6a55; font-size: 13px; margin-top: 10px; flex-wrap: wrap; }
+    .files-section { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 24px; }
+    .files-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .files-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 700; color: #1a1208; }
+    .files-subtitle { font-size: 13px; color: #a89880; margin-top: 4px; }
+    .files-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge { display: flex; align-items: center; gap: 6px; border-radius: 99px; padding: 5px 12px; font-size: 11px; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
+    .badge-progress { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .badge-revised { background: #f0fdf4; border: 1px solid #bbf7d0; color: #059669; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 14px; }
+    .card { background: #fffdf8; border: 1.5px solid #e8e2d8; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s; }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+    .card.inprogress { border-color: #d97706; box-shadow: 0 0 0 3px #d9770618; }
+    .card.revised { border-color: #d1c5a5; }
+    .thumb { position: relative; aspect-ratio: 4/3; background: #f0ece4; overflow: hidden; cursor: pointer; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #c4b89a; }
+    .thumb-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 20px; opacity: 0; transition: opacity 0.15s; }
+    .thumb:hover .thumb-overlay { opacity: 1; }
+    .status-badge { position: absolute; top: 8px; left: 8px; font-size: 9px; padding: 3px 8px; border-radius: 99px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; display: flex; align-items: center; gap: 4px; }
+    .status-badge.progress { background: #d97706; color: #fff; }
+    .status-badge.revised { background: #059669; color: #fff; }
+    .ver-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.45); color: #fff; font-size: 10px; padding: 3px 8px; border-radius: 99px; font-family: monospace; }
+    .body { padding: 12px 14px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .design-name { font-family: 'Lora', serif; font-weight: 700; font-size: 13px; color: #1a1208; line-height: 1.3; }
+    .progress-notice { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 7px 10px; display: flex; gap: 7px; align-items: flex-start; margin-top: 4px; }
+    .progress-label { font-size: 10px; font-weight: 700; color: #92400e; letter-spacing: 1px; font-family: monospace; }
+    .progress-text { font-size: 11px; color: #b45309; margin-top: 2px; line-height: 1.4; }
+    .actions { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
+    .btn { width: 100%; padding: 9px 0; border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-align: center; border: none; text-decoration: none; display: block; }
+    .btn-dl { background: #1a1208; color: #f0ece4; font-weight: 600; }
+    .btn-hist { background: transparent; border: 1.5px solid #e8e2d8; color: #7a6a55; }
+    .btn-edit { background: transparent; border: 1.5px solid #e8e2d8; color: #7a6a55; }
+    .btn-pend { background: #f5f0e8; border: 1.5px solid #e8e2d8; color: #c4b89a; cursor: not-allowed; }
+    .btn-send { background: #d97706; color: #fff; font-weight: 700; flex: 2; }
+    .btn-cancel { background: transparent; border: 1.5px solid #e8e2d8; color: #a89880; flex: 1; }
+    .btn-row { display: flex; gap: 6px; }
+    .sent { padding: 9px 0; text-align: center; color: #059669; font-size: 12px; font-weight: 600; }
+    textarea { width: 100%; height: 68px; padding: 9px 11px; border: 1.5px solid #d1c5a5; border-radius: 8px; resize: none; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #1a1208; background: #fffdf8; outline: none; }
+    .footer-note { margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0ece4; color: #c4b89a; font-size: 11px; text-align: center; }
+    .overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(10,8,5,0.6); backdrop-filter: blur(3px); display: flex; align-items: flex-end; justify-content: center; }
+    .drawer { background: #fffdf8; border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 -8px 40px rgba(0,0,0,0.2); }
+    .drawer-head { padding: 20px 22px 16px; border-bottom: 1px solid #f0ece4; display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
+    .drawer-title { font-family: 'Lora', serif; font-weight: 700; font-size: 17px; color: #1a1208; }
+    .drawer-sub { font-size: 12px; color: #a89880; margin-top: 3px; }
+    .drawer-close { background: #f0ece4; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px; color: #7a6a55; display: flex; align-items: center; justify-content: center; }
+    .drawer-body { overflow-y: auto; padding: 20px 22px 32px; }
+    .timeline { position: relative; }
+    .tline-bar { position: absolute; left: 15px; top: 8px; bottom: 8px; width: 2px; background: #e8e2d8; border-radius: 2px; }
+    .titem { display: flex; gap: 14px; margin-bottom: 20px; position: relative; }
+    .tnode { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; z-index: 1; font-family: monospace; font-weight: 700; }
+    .tnode-v { background: #f0ece4; border: 2px solid #d1c5a5; color: #7a6a55; }
+    .tnode-vcur { background: #1a1208; border: 2px solid #1a1208; color: #fff; }
+    .tnode-res { background: #f0fdf4; border: 2px solid #bbf7d0; color: #059669; font-size: 14px; }
+    .tnode-pend { background: #fef3c7; border: 2px solid #fde68a; color: #92400e; font-size: 14px; }
+    .ver-card { border-radius: 12px; overflow: hidden; margin-bottom: 2px; }
+    .ver-card-dark { background: #1a1208; }
+    .ver-card-light { background: #fff; border: 1.5px solid #e8e2d8; }
+    .ver-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; cursor: zoom-in; }
+    .ver-row { display: flex; align-items: center; padding: 10px 12px; gap: 8px; }
+    .ver-lbl-dark { color: #f0ece4; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .ver-lbl-light { color: #1a1208; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .ver-date { font-size: 11px; color: #a89880; margin-top: 2px; }
+    .ver-cur-badge { background: #d97706; color: #fff; font-size: 9px; padding: 2px 7px; border-radius: 99px; font-weight: 700; letter-spacing: 1px; }
+    .ver-acts { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+    .ver-view { font-size: 11px; font-weight: 600; background: none; border: none; cursor: pointer; color: #a78bfa; font-family: 'DM Sans', sans-serif; }
+    .ver-dl-gold { font-size: 11px; font-weight: 600; text-decoration: none; color: #d97706; }
+    .ver-dl-grey { font-size: 11px; font-weight: 600; text-decoration: none; color: #7a6a55; }
+    .req-card { border-radius: 12px; padding: 10px 14px; }
+    .req-res { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
+    .req-pend { background: #fffbeb; border: 1.5px solid #fde68a; }
+    .req-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .req-lbl-res { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; font-family: monospace; color: #059669; display: flex; align-items: center; gap: 5px; }
+    .req-lbl-pend { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; font-family: monospace; color: #92400e; display: flex; align-items: center; gap: 5px; }
+    .req-date { font-size: 10px; color: #a89880; font-family: monospace; }
+    .req-note { margin: 0; font-size: 13px; color: #3d3020; line-height: 1.5; font-style: italic; }
+    .viewer-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.93); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    .viewer-top { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; align-items: center; }
+    .viewer-lbl { color: #a89880; font-size: 13px; }
+    .viewer-close { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; color: #fff; display: flex; align-items: center; justify-content: center; }
+    .viewer-img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
+    .not-found { text-align: center; padding: 80px 24px; }
+    .not-found h1 { font-family: 'Lora', serif; font-size: 24px; color: #1a1208; margin-bottom: 12px; }
+    .not-found p { color: #a89880; font-size: 14px; }
+    .loading { text-align: center; padding: 60px 24px; color: #a89880; font-size: 14px; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .pulse { display: inline-block; border-radius: 50%; animation: pulse 1.5s infinite; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="https://printergrowth.com" class="nav-logo">Printer Growth</a>
+  <a href="https://printergrowth.com/account" class="nav-login">My Account &rarr;</a>
+</nav>
+
+<div class="container">
+  <div id="app-root"><div class="loading">Loading your order&hellip;</div></div>
+</div>
+
+<div id="drawer-root"></div>
+<div id="viewer-root"></div>
+
+<script>
+(function(){
+  var SUPABASE_URL  = 'https://smmvhozhzeemojqrazbl.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us';
+  var MAKE_WEBHOOK  = '/api/edit';
+
+  var token = new URLSearchParams(window.location.search).get('token');
+  if (!token) { showNotFound(); return; }
+
+  function sq(table, params) {
+    return fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + params, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+    }).then(function(r){ return r.json(); });
+  }
+
+  sq('orders', 'select=*&token=eq.' + token + '&limit=1').then(function(orders) {
+    if (!orders || !orders.length) { showNotFound(); return; }
+    var order = orders[0];
+    Promise.all([
+      sq('files', 'select=*&shopify_order_id=eq.' + order.shopify_order_id + '&order=created_at.asc'),
+      sq('file_versions', 'select=*&order=version.asc'),
+      sq('edit_requests', 'select=*&order=created_at.asc')
+    ]).then(function(res) {
+      var files = res[0]||[], versions = res[1]||[], requests = res[2]||[];
+      files = files.map(function(f) {
+        f.all_versions  = versions.filter(function(v){ return v.file_id === f.id; });
+        f.edit_requests = requests.filter(function(r){ return r.file_id === f.id; });
+        return f;
+      });
+      render(order, files);
+    });
+  }).catch(showNotFound);
+
+  function render(order, files) {
+    var inProg  = files.filter(function(f){ return f.revision_status === 'in_progress'; }).length;
+    var revised = files.filter(function(f){ return f.is_revised && f.revision_status === 'delivered'; }).length;
+    var html = '<div class="order-header"><div class="order-eyebrow">Your order is ready</div>';
+    html += '<div class="order-title">Order #' + order.shopify_order_number + '</div>';
+    html += '<div class="order-meta"><span>' + order.customer_name + '</span><span>' + files.length + ' design' + (files.length!==1?'s':'') + '</span></div></div>';
+    html += '<div class="files-section"><div class="files-header"><div><div class="files-title">Your Artwork Files</div>';
+    html += '<div class="files-subtitle">' + files.length + ' design' + (files.length!==1?'s':'');
+    if (revised) html += ' &middot; ' + revised + ' revised';
+    if (inProg)  html += ' &middot; ' + inProg + ' in progress';
+    html += '</div></div><div class="files-badges">';
+    if (inProg)  html += '<div class="badge badge-progress"><span class="pulse" style="width:7px;height:7px;background:#d97706;"></span>' + inProg + ' IN PROGRESS</div>';
+    if (revised) html += '<div class="badge badge-revised">&#10003; ' + revised + ' REVISED</div>';
+    html += '</div></div><div class="grid" id="main-grid"></div>';
+    html += '<div class="footer-note">After requesting an edit, you\'ll receive a reply by email. Just reply back to continue the conversation.</div></div>';
+    document.getElementById('app-root').innerHTML = html;
+    var grid = document.getElementById('main-grid');
+    files.forEach(function(f,i){ grid.appendChild(buildCard(f,i,order.customer_email)); });
+  }
+
+  function buildCard(f,idx,ce) {
+    var inProg     = f.revision_status === 'in_progress';
+    var hasHistory = f.all_versions.length > 1 || f.edit_requests.length > 0;
+    var label      = 'Design ' + (idx+1);
+    var card = document.createElement('div');
+    card.className = 'card' + (inProg?' inprogress':f.is_revised?' revised':'');
+    card.id = 'card-' + f.id;
+    card.dataset.file  = JSON.stringify(f);
+    card.dataset.label = label;
+    card.dataset.ce    = ce||'';
+    var sb = inProg ? '<div class="status-badge progress"><span class="pulse" style="width:6px;height:6px;background:#fff;"></span>IN PROGRESS</div>'
+           : f.is_revised ? '<div class="status-badge revised">REVISED</div>' : '';
+    var pn = inProg ? '<div class="progress-notice"><span style="font-size:14px;flex-shrink:0">&#9203;</span><div><div class="progress-label">REVISION IN PROGRESS</div><div class="progress-text">Your edit request is being worked on. We\'ll email you and update files when it is finished.</div></div></div>' : '';
+    var tc = f.preview_url ? '<img src="' + f.preview_url + '" alt="' + label + '" onerror="this.parentElement.innerHTML=\'<div class=thumb-ph>&#128444;</div>\'">' : '<div class="thumb-ph">&#128444;</div>';
+    card.innerHTML =
+      '<div class="thumb" onclick="viewImg(\'' + (f.preview_url||'') + '\',\'' + label + '\')">' + tc +
+      '<div class="thumb-overlay">&#128269;</div>' + sb + '<div class="ver-badge">v' + f.version + '</div></div>' +
+      '<div class="body"><div><div class="design-name">' + label + '</div>' + pn + '</div>' +
+      '<div class="actions" id="act-' + f.id + '">' +
+      '<a href="' + (f.download_url||'#') + '" class="btn btn-dl" download>&#11015; Download</a>' +
+      (hasHistory ? '<button class="btn btn-hist" onclick="openHistory(\'' + f.id + '\')">&#128339; History (' + f.all_versions.length + 'v &middot; ' + f.edit_requests.length + ' req)</button>' : '') +
+      (inProg ? '<button class="btn btn-pend" disabled>&#9999; Revision Already Pending</button>'
+              : '<button class="btn btn-edit" onclick="openEdit(\'' + f.id + '\',\'' + f.clickup_subtask_email + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>') +
+      '</div></div>';
+    return card;
+  }
+
+  window.openEdit = function(fid,email,label,ce) {
+    document.getElementById('act-' + fid).innerHTML =
+      '<a href="#" class="btn btn-dl">&#11015; Download</a>' +
+      '<textarea id="note-' + fid + '" placeholder="Describe what needs to change on ' + label + '..."></textarea>' +
+      '<div class="btn-row"><button class="btn btn-cancel" style="flex:1" onclick="cancelEdit(\'' + fid + '\',\'' + email + '\',\'' + label + '\',\'' + (ce||'') + '\')">Cancel</button>' +
+      '<button class="btn btn-send" style="flex:2" onclick="sendEdit(\'' + fid + '\',\'' + email + '\',\'' + label + '\',\'' + (ce||'') + '\')">Send Request</button></div>';
+  };
+
+  window.cancelEdit = function(fid,email,label,ce) {
+    document.getElementById('act-' + fid).innerHTML =
+      '<a href="#" class="btn btn-dl">&#11015; Download</a>' +
+      '<button class="btn btn-edit" onclick="openEdit(\'' + fid + '\',\'' + email + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>';
+  };
+
+  window.sendEdit = function(fid,email,label,ce) {
+    var note = document.getElementById('note-' + fid).value.trim();
+    if (!note) return;
+    document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://hooks.zapier.com/hooks/catch/26760206/u7mvskt/';
+    form.target = 'hidden_iframe';
+    var fields = {clickup_subtask_email:email, file_name:label, note:note, customer_email:ce, file_id:fid};
+    Object.keys(fields).forEach(function(k){
+      var i = document.createElement('input');
+      i.type = 'hidden'; i.name = k; i.value = fields[k];
+      form.appendChild(i);
+    });
+    document.body.appendChild(form);
+    var iframe = document.createElement('iframe');
+    iframe.name = 'hidden_iframe';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    form.submit();
+    setTimeout(function(){
+      document.getElementById('act-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div>';
+    }, 1000);
+  };
+
+  window.openHistory = function(fid) {
+    var card  = document.getElementById('card-' + fid);
+    var f     = JSON.parse(card.dataset.file);
+    var label = card.dataset.label;
+    var timeline = [];
+    f.all_versions.forEach(function(ver) {
+      timeline.push({ type: 'version', data: ver });
+      var req = f.edit_requests.filter(function(r){ return r.version_at_time === ver.version; })[0];
+      if (req) timeline.push({ type: 'request', data: req });
+    });
+    var tHtml = timeline.map(function(item) {
+      if (item.type === 'version') {
+        var v = item.data, isCur = v.version === f.version;
+        var date = v.uploaded_at ? new Date(v.uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        return '<div class="titem"><div class="tnode ' + (isCur?'tnode-vcur':'tnode-v') + '">v' + v.version + '</div>' +
+          '<div style="flex:1;padding-top:4px"><div class="ver-card ' + (isCur?'ver-card-dark':'ver-card-light') + '">' +
+          (v.preview_url ? '<img src="' + v.preview_url + '" class="ver-img" onclick="viewImg(\'' + v.preview_url + '\',\'' + label + ' v' + v.version + '\')">' : '') +
+          '<div class="ver-row"><div style="flex:1"><div class="' + (isCur?'ver-lbl-dark':'ver-lbl-light') + '">Version ' + v.version + (isCur?' <span class="ver-cur-badge">CURRENT</span>':'') + '</div><div class="ver-date">' + date + '</div></div>' +
+          '<div class="ver-acts">' + (v.preview_url ? '<button class="ver-view" onclick="viewImg(\'' + v.preview_url + '\',\'' + label + ' v' + v.version + '\')">&#128269; View</button>' : '') +
+          '<a href="' + (v.download_url||'#') + '" class="' + (isCur?'ver-dl-gold':'ver-dl-grey') + '" download>&#11015; DL</a></div></div></div></div></div>';
+      } else {
+        var r = item.data, ip = r.status === 'in_progress';
+        var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        return '<div class="titem"><div class="tnode ' + (ip?'tnode-pend':'tnode-res') + '">' + (ip?'&#9203;':'&#10003;') + '</div>' +
+          '<div style="flex:1;padding-top:4px"><div class="req-card ' + (ip?'req-pend':'req-res') + '">' +
+          '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
+          (ip ? '<span class="pulse" style="width:6px;height:6px;background:#d97706;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
+          '</div><span class="req-date">' + rDate + '</span></div>' +
+          '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p></div></div></div>';
+      }
+    }).join('');
+    document.getElementById('drawer-root').innerHTML =
+      '<div class="overlay" onclick="closeDrawer()"><div class="drawer" onclick="event.stopPropagation()">' +
+      '<div class="drawer-head"><div><div class="drawer-title">' + label + ' &mdash; History</div>' +
+      '<div class="drawer-sub">' + f.all_versions.length + ' version' + (f.all_versions.length!==1?'s':'') + ' &middot; ' + f.edit_requests.length + ' request' + (f.edit_requests.length!==1?'s':'') + '</div></div>' +
+      '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
+      '<div class="drawer-body"><div class="timeline"><div class="tline-bar"></div>' + tHtml + '</div></div></div></div>';
+  };
+
+  window.closeDrawer = function() { document.getElementById('drawer-root').innerHTML = ''; };
+
+  window.viewImg = function(src, label) {
+    if (!src) return;
+    document.getElementById('viewer-root').innerHTML =
+      '<div class="viewer-overlay" onclick="closeViewer()">' +
+      '<div class="viewer-top"><span class="viewer-lbl">' + label + '</span>' +
+      '<button class="viewer-close" onclick="closeViewer()">&#10005;</button></div>' +
+      '<img src="' + src + '" class="viewer-img" onclick="event.stopPropagation()"></div>';
+  };
+
+  window.closeViewer = function() { document.getElementById('viewer-root').innerHTML = ''; };
+
+  function showNotFound() {
+    document.getElementById('app-root').innerHTML =
+      '<div class="not-found"><h1>Order not found</h1><p>This link may have expired or is incorrect. Please check your email or <a href="https://printergrowth.com/account" style="color:#1a1208">log in to your account</a>.</p></div>';
+  }
+})();
+</script>
+</body>
+</html>
