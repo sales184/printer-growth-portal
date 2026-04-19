@@ -122,7 +122,7 @@
 (function(){
   var SUPABASE_URL  = 'https://smmvhozhzeemojqrazbl.supabase.co';
   var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us';
-  var MAKE_WEBHOOK  = '/api/edit';
+  var EDIT_ENDPOINT = '/api/edit';
 
   var token = new URLSearchParams(window.location.search).get('token');
   if (!token) { showNotFound(); return; }
@@ -212,29 +212,29 @@
       '<button class="btn btn-edit" onclick="openEdit(\'' + fid + '\',\'' + email + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>';
   };
 
-  window.sendEdit = function(fid,email,label,ce) {
+  window.sendEdit = function(fid, email, label, ce) {
     var note = document.getElementById('note-' + fid).value.trim();
     if (!note) return;
     document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'https://hooks.zapier.com/hooks/catch/26760206/u7mvskt/';
-    form.target = 'hidden_iframe';
-    var fields = {clickup_subtask_email:email, file_name:label, note:note, customer_email:ce, file_id:fid};
-    Object.keys(fields).forEach(function(k){
-      var i = document.createElement('input');
-      i.type = 'hidden'; i.name = k; i.value = fields[k];
-      form.appendChild(i);
-    });
-    document.body.appendChild(form);
-    var iframe = document.createElement('iframe');
-    iframe.name = 'hidden_iframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    form.submit();
-    setTimeout(function(){
+
+    fetch(EDIT_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        clickup_subtask_email: email,
+        file_name: label,
+        note: note,
+        customer_email: ce,
+        file_id: fid
+      })
+    })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
       document.getElementById('act-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div>';
-    }, 1000);
+    })
+    .catch(function(err) {
+      document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#d97706;font-size:12px;">Error sending. Please try again.</div>';
+    });
   };
 
   window.openHistory = function(fid) {
