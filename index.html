@@ -193,26 +193,26 @@
       '<a href="' + (f.download_url||'#') + '" class="btn btn-dl" download>&#11015; Download</a>' +
       (hasHistory ? '<button class="btn btn-hist" onclick="openHistory(\'' + f.id + '\')">&#128339; History (' + f.all_versions.length + 'v &middot; ' + f.edit_requests.length + ' req)</button>' : '') +
       (inProg ? '<button class="btn btn-pend" disabled>&#9999; Revision Already Pending</button>'
-              : '<button class="btn btn-edit" onclick="openEdit(\'' + f.id + '\',\'' + f.clickup_subtask_email + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>') +
+              : '<button class="btn btn-edit" onclick="openEdit(\'' + f.id + '\',\'' + (f.clickup_subtask_id||'') + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>') +
       '</div></div>';
     return card;
   }
 
-  window.openEdit = function(fid,email,label,ce) {
+  window.openEdit = function(fid, subtaskId, label, ce) {
     document.getElementById('act-' + fid).innerHTML =
       '<a href="#" class="btn btn-dl">&#11015; Download</a>' +
       '<textarea id="note-' + fid + '" placeholder="Describe what needs to change on ' + label + '..."></textarea>' +
-      '<div class="btn-row"><button class="btn btn-cancel" style="flex:1" onclick="cancelEdit(\'' + fid + '\',\'' + email + '\',\'' + label + '\',\'' + (ce||'') + '\')">Cancel</button>' +
-      '<button class="btn btn-send" style="flex:2" onclick="sendEdit(\'' + fid + '\',\'' + email + '\',\'' + label + '\',\'' + (ce||'') + '\')">Send Request</button></div>';
+      '<div class="btn-row"><button class="btn btn-cancel" style="flex:1" onclick="cancelEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">Cancel</button>' +
+      '<button class="btn btn-send" style="flex:2" onclick="sendEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">Send Request</button></div>';
   };
 
-  window.cancelEdit = function(fid,email,label,ce) {
+  window.cancelEdit = function(fid, subtaskId, label, ce) {
     document.getElementById('act-' + fid).innerHTML =
       '<a href="#" class="btn btn-dl">&#11015; Download</a>' +
-      '<button class="btn btn-edit" onclick="openEdit(\'' + fid + '\',\'' + email + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>';
+      '<button class="btn btn-edit" onclick="openEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>';
   };
 
-  window.sendEdit = function(fid, email, label, ce) {
+  window.sendEdit = function(fid, subtaskId, label, ce) {
     var note = document.getElementById('note-' + fid).value.trim();
     if (!note) return;
     document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
@@ -221,7 +221,7 @@
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        clickup_subtask_email: email,
+        clickup_subtask_id: subtaskId,
         file_name: label,
         note: note,
         customer_email: ce,
