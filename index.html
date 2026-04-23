@@ -11,7 +11,7 @@
     .nav { background: #fff; border-bottom: 1px solid #e8e2d8; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
     .nav-logo { font-family: 'Lora', serif; font-size: 18px; color: #1a1208; text-decoration: none; }
     .nav-login { font-size: 13px; color: #7a6a55; text-decoration: none; }
-    .container { max-width: 860px; margin: 0 auto; padding: 40px 24px; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 40px 24px; }
     .customer-header { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
     .customer-eyebrow { color: #a89880; font-size: 12px; margin-bottom: 4px; }
     .customer-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 700; color: #1a1208; }
@@ -32,26 +32,30 @@
     .badge-progress { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
     .badge-revised { background: #f0fdf4; border: 1px solid #bbf7d0; color: #059669; }
     .badge-waiting { background: #f5f0e8; border: 1px solid #e8e2d8; color: #7a6a55; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
     .card { background: #fffdf8; border: 1.5px solid #e8e2d8; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s; }
     .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
     .card.inprogress { border-color: #d97706; box-shadow: 0 0 0 3px #d9770618; }
     .card.revised { border-color: #d1c5a5; }
     .card.original { border-color: #c4b89a; }
-    .thumb { position: relative; aspect-ratio: 4/3; background: #f0ece4; overflow: hidden; cursor: pointer; }
-    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .thumb-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #c4b89a; }
-    .thumb-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 20px; opacity: 0; transition: opacity 0.15s; }
-    .thumb:hover .thumb-overlay { opacity: 1; }
-    .status-badge { position: absolute; top: 8px; left: 8px; font-size: 9px; padding: 3px 8px; border-radius: 99px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; display: flex; align-items: center; gap: 4px; }
-    .status-badge.progress { background: #d97706; color: #fff; }
-    .status-badge.revised { background: #059669; color: #fff; }
-    .status-badge.original { background: #7a6a55; color: #fff; }
-    .ver-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.45); color: #fff; font-size: 10px; padding: 3px 8px; border-radius: 99px; font-family: monospace; }
-    .body { padding: 12px 14px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
-    .design-name { font-family: 'Lora', serif; font-weight: 700; font-size: 13px; color: #1a1208; line-height: 1.3; }
-    .design-label { font-size: 10px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
-    .progress-notice, .waiting-notice { border-radius: 8px; padding: 7px 10px; display: flex; gap: 7px; align-items: flex-start; margin-top: 4px; }
+    .card-header { padding: 12px 14px 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0ece4; gap: 10px; }
+    .design-name { font-family: 'Lora', serif; font-weight: 700; font-size: 14px; color: #1a1208; line-height: 1.2; }
+    .design-label { font-size: 10px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .card-status-badge { font-size: 9px; padding: 3px 8px; border-radius: 99px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; flex-shrink: 0; }
+    .card-status-badge.progress { background: #d97706; color: #fff; }
+    .card-status-badge.revised { background: #059669; color: #fff; }
+    .card-status-badge.original { background: #7a6a55; color: #fff; }
+    .files-list { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+    .file-row { display: flex; gap: 10px; align-items: center; padding: 8px; background: #f5f0e8; border-radius: 8px; }
+    .file-thumb { width: 56px; height: 56px; border-radius: 6px; background: #f0ece4; overflow: hidden; flex-shrink: 0; cursor: pointer; position: relative; }
+    .file-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .file-thumb-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #c4b89a; }
+    .file-info { flex: 1; min-width: 0; }
+    .file-label { font-size: 12px; font-weight: 600; color: #1a1208; }
+    .file-meta { font-size: 11px; color: #a89880; margin-top: 2px; }
+    .file-dl { font-size: 11px; font-weight: 600; text-decoration: none; color: #d97706; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #fde68a; flex-shrink: 0; }
+    .file-dl:hover { background: #fffbeb; }
+    .progress-notice, .waiting-notice { border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start; margin: 0 14px 10px; }
     .progress-notice { background: #fffbeb; border: 1px solid #fde68a; }
     .waiting-notice { background: #f5f0e8; border: 1px solid #e8e2d8; }
     .progress-label, .waiting-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
@@ -60,9 +64,8 @@
     .progress-text, .waiting-text { font-size: 11px; margin-top: 2px; line-height: 1.4; }
     .progress-text { color: #b45309; }
     .waiting-text { color: #7a6a55; }
-    .actions { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
+    .actions { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 6px; margin-top: auto; border-top: 1px solid #f0ece4; }
     .btn { width: 100%; padding: 9px 0; border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-align: center; border: none; text-decoration: none; display: block; }
-    .btn-dl { background: #1a1208; color: #f0ece4; font-weight: 600; }
     .btn-hist { background: transparent; border: 1.5px solid #e8e2d8; color: #7a6a55; }
     .btn-edit { background: transparent; border: 1.5px solid #e8e2d8; color: #7a6a55; }
     .btn-pend { background: #f5f0e8; border: 1.5px solid #e8e2d8; color: #c4b89a; cursor: not-allowed; }
@@ -79,28 +82,16 @@
     .drawer-sub { font-size: 12px; color: #a89880; margin-top: 3px; }
     .drawer-close { background: #f0ece4; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px; color: #7a6a55; display: flex; align-items: center; justify-content: center; }
     .drawer-body { overflow-y: auto; padding: 20px 22px 32px; }
-    .timeline { position: relative; }
-    .tline-bar { position: absolute; left: 15px; top: 8px; bottom: 8px; width: 2px; background: #e8e2d8; border-radius: 2px; }
-    .titem { display: flex; gap: 14px; margin-bottom: 20px; position: relative; }
-    .tnode { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; z-index: 1; font-family: monospace; font-weight: 700; }
-    .tnode-v { background: #f0ece4; border: 2px solid #d1c5a5; color: #7a6a55; }
-    .tnode-vcur { background: #1a1208; border: 2px solid #1a1208; color: #fff; }
-    .tnode-res { background: #f0fdf4; border: 2px solid #bbf7d0; color: #059669; font-size: 14px; }
-    .tnode-pend { background: #fef3c7; border: 2px solid #fde68a; color: #92400e; font-size: 14px; }
-    .ver-card { border-radius: 12px; overflow: hidden; margin-bottom: 2px; }
-    .ver-card-dark { background: #1a1208; }
-    .ver-card-light { background: #fff; border: 1.5px solid #e8e2d8; }
-    .ver-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; cursor: zoom-in; }
-    .ver-row { display: flex; align-items: center; padding: 10px 12px; gap: 8px; }
-    .ver-lbl-dark { color: #f0ece4; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-    .ver-lbl-light { color: #1a1208; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-    .ver-date { font-size: 11px; color: #a89880; margin-top: 2px; }
-    .ver-cur-badge { background: #d97706; color: #fff; font-size: 9px; padding: 2px 7px; border-radius: 99px; font-weight: 700; letter-spacing: 1px; }
-    .ver-acts { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
-    .ver-view { font-size: 11px; font-weight: 600; background: none; border: none; cursor: pointer; color: #a78bfa; font-family: 'DM Sans', sans-serif; }
-    .ver-dl-gold { font-size: 11px; font-weight: 600; text-decoration: none; color: #d97706; }
-    .ver-dl-grey { font-size: 11px; font-weight: 600; text-decoration: none; color: #7a6a55; }
-    .req-card { border-radius: 12px; padding: 10px 14px; }
+    .vgroup { margin-bottom: 24px; }
+    .vgroup-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .vgroup-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: monospace; font-weight: 700; flex-shrink: 0; }
+    .vgroup-num.current { background: #1a1208; color: #fff; }
+    .vgroup-num.old { background: #f0ece4; color: #7a6a55; border: 2px solid #d1c5a5; }
+    .vgroup-label { font-weight: 700; font-size: 13px; color: #1a1208; }
+    .vgroup-cur-badge { background: #d97706; color: #fff; font-size: 9px; padding: 2px 7px; border-radius: 99px; font-weight: 700; letter-spacing: 1px; margin-left: 8px; }
+    .vgroup-date { font-size: 11px; color: #a89880; margin-left: auto; }
+    .vgroup-files { display: flex; flex-direction: column; gap: 8px; margin-left: 42px; }
+    .req-card { border-radius: 12px; padding: 10px 14px; margin-left: 42px; margin-top: 8px; margin-bottom: 8px; }
     .req-res { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
     .req-pend { background: #fffbeb; border: 1.5px solid #fde68a; }
     .req-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -169,6 +160,22 @@
         files = files.map(function(f) {
           f.all_versions  = versions.filter(function(v){ return v.file_id === f.id; });
           f.edit_requests = requests.filter(function(r){ return r.file_id === f.id; });
+          // compute highest version and files at that version
+          if (f.all_versions.length) {
+            var maxV = Math.max.apply(null, f.all_versions.map(function(v){ return v.version; }));
+            f.latest_version = maxV;
+            f.current_files = f.all_versions.filter(function(v){ return v.version === maxV; });
+          } else {
+            // no versions stored, fall back to the files row itself
+            f.latest_version = f.version || 1;
+            f.current_files = [{
+              id: 'base-' + f.id,
+              version: f.version || 1,
+              download_url: f.download_url,
+              preview_url: f.preview_url,
+              uploaded_at: f.created_at
+            }];
+          }
           return f;
         });
         orders = orders.map(function(o){
@@ -258,35 +265,47 @@
     var isAwaiting  = !isDelivered && !inProg;
     var hasHistory = f.all_versions.length > 1 || f.edit_requests.length > 0;
     var label      = 'Design ' + (idx+1);
+    var subLabel   = isAwaiting ? 'Original upload' : (f.is_revised ? 'Latest revision' : 'Final artwork');
+    var statusBadge = inProg ? '<span class="card-status-badge progress">IN PROGRESS</span>'
+                    : f.is_revised ? '<span class="card-status-badge revised">REVISED</span>'
+                    : isAwaiting ? '<span class="card-status-badge original">ORIGINAL</span>' : '';
     var card = document.createElement('div');
     card.className = 'card' + (inProg?' inprogress':(f.is_revised?' revised':(isAwaiting?' original':'')));
     card.id = 'card-' + f.id;
     card.dataset.file  = JSON.stringify(f);
     card.dataset.label = label;
     card.dataset.ce    = ce||'';
-    var sb = inProg ? '<div class="status-badge progress"><span class="pulse" style="width:6px;height:6px;background:#fff;"></span>IN PROGRESS</div>'
-           : f.is_revised ? '<div class="status-badge revised">REVISED</div>'
-           : isAwaiting ? '<div class="status-badge original">ORIGINAL</div>' : '';
-    var pn = inProg ? '<div class="progress-notice"><span style="font-size:14px;flex-shrink:0">&#9203;</span><div><div class="progress-label">REVISION IN PROGRESS</div><div class="progress-text">Your edit request is being worked on. We\'ll email you when finished.</div></div></div>'
-           : isAwaiting ? '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">ORIGINAL DESIGN</div><div class="waiting-text">This is your uploaded file. Our team is preparing the final artwork.</div></div></div>' : '';
-    var tc = f.preview_url ? '<img src="' + f.preview_url + '" alt="' + label + '" onerror="this.parentElement.innerHTML=\'<div class=thumb-ph>&#128444;</div>\'">' : '<div class="thumb-ph">&#128444;</div>';
-    var subLabel = isAwaiting ? 'Original upload' : (f.is_revised ? 'Latest revision' : 'Final artwork');
+
+    var filesListHtml = '<div class="files-list">';
+    f.current_files.forEach(function(cf, i){
+      var fileLabel = f.current_files.length > 1 ? 'File ' + (i+1) : subLabel;
+      var fileMeta = f.current_files.length > 1 ? subLabel : ('Version ' + cf.version);
+      var thumb = cf.preview_url ? '<img src="' + cf.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+      filesListHtml += '<div class="file-row">' +
+        '<div class="file-thumb" onclick="viewImg(\'' + (cf.preview_url||'') + '\',\'' + label + ' — ' + fileLabel + '\')">' + thumb + '</div>' +
+        '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">' + fileMeta + '</div></div>' +
+        '<a href="' + (cf.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
+      '</div>';
+    });
+    filesListHtml += '</div>';
+
+    var notice = inProg ? '<div class="progress-notice"><span style="font-size:14px;flex-shrink:0">&#9203;</span><div><div class="progress-label">REVISION IN PROGRESS</div><div class="progress-text">Your edit request is being worked on. We\'ll email you when finished.</div></div></div>'
+                : isAwaiting ? '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">ORIGINAL DESIGN</div><div class="waiting-text">This is your uploaded file. Our team is preparing the final artwork.</div></div></div>' : '';
+
     card.innerHTML =
-      '<div class="thumb" onclick="viewImg(\'' + (f.preview_url||'') + '\',\'' + label + '\')">' + tc +
-      '<div class="thumb-overlay">&#128269;</div>' + sb + '<div class="ver-badge">v' + f.version + '</div></div>' +
-      '<div class="body"><div><div class="design-name">' + label + '</div><div class="design-label">' + subLabel + '</div>' + pn + '</div>' +
+      '<div class="card-header"><div><div class="design-name">' + label + '</div><div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div></div>' + statusBadge + '</div>' +
+      filesListHtml +
+      notice +
       '<div class="actions" id="act-' + f.id + '">' +
-      '<a href="' + (f.download_url||'#') + '" class="btn btn-dl" download>&#11015; Download</a>' +
-      (hasHistory ? '<button class="btn btn-hist" onclick="openHistory(\'' + f.id + '\')">&#128339; History (' + f.all_versions.length + 'v &middot; ' + f.edit_requests.length + ' req)</button>' : '') +
+      (hasHistory ? '<button class="btn btn-hist" onclick="openHistory(\'' + f.id + '\')">&#128339; History (' + f.latest_version + 'v &middot; ' + f.edit_requests.length + ' req)</button>' : '') +
       (inProg ? '<button class="btn btn-pend" disabled>&#9999; Revision Already Pending</button>'
               : '<button class="btn btn-edit" onclick="openEdit(\'' + f.id + '\',\'' + (f.clickup_subtask_id||'') + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>') +
-      '</div></div>';
+      '</div>';
     return card;
   }
 
   window.openEdit = function(fid, subtaskId, label, ce) {
     document.getElementById('act-' + fid).innerHTML =
-      '<a href="#" class="btn btn-dl">&#11015; Download</a>' +
       '<textarea id="note-' + fid + '" placeholder="Describe what needs to change on ' + label + '..."></textarea>' +
       '<div class="btn-row"><button class="btn btn-cancel" style="flex:1" onclick="cancelEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">Cancel</button>' +
       '<button class="btn btn-send" style="flex:2" onclick="sendEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">Send Request</button></div>';
@@ -294,7 +313,6 @@
 
   window.cancelEdit = function(fid, subtaskId, label, ce) {
     document.getElementById('act-' + fid).innerHTML =
-      '<a href="#" class="btn btn-dl">&#11015; Download</a>' +
       '<button class="btn btn-edit" onclick="openEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>';
   };
 
@@ -327,39 +345,57 @@
     var card  = document.getElementById('card-' + fid);
     var f     = JSON.parse(card.dataset.file);
     var label = card.dataset.label;
-    var timeline = [];
-    f.all_versions.forEach(function(ver) {
-      timeline.push({ type: 'version', data: ver });
-      var req = f.edit_requests.filter(function(r){ return r.version_at_time === ver.version; })[0];
-      if (req) timeline.push({ type: 'request', data: req });
+
+    // Group versions
+    var versionGroups = {};
+    f.all_versions.forEach(function(v){
+      if (!versionGroups[v.version]) versionGroups[v.version] = [];
+      versionGroups[v.version].push(v);
     });
-    var tHtml = timeline.map(function(item) {
-      if (item.type === 'version') {
-        var v = item.data, isCur = v.version === f.version;
-        var date = v.uploaded_at ? new Date(v.uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-        return '<div class="titem"><div class="tnode ' + (isCur?'tnode-vcur':'tnode-v') + '">v' + v.version + '</div>' +
-          '<div style="flex:1;padding-top:4px"><div class="ver-card ' + (isCur?'ver-card-dark':'ver-card-light') + '">' +
-          (v.preview_url ? '<img src="' + v.preview_url + '" class="ver-img" onclick="viewImg(\'' + v.preview_url + '\',\'' + label + ' v' + v.version + '\')">' : '') +
-          '<div class="ver-row"><div style="flex:1"><div class="' + (isCur?'ver-lbl-dark':'ver-lbl-light') + '">Version ' + v.version + (isCur?' <span class="ver-cur-badge">CURRENT</span>':'') + '</div><div class="ver-date">' + date + '</div></div>' +
-          '<div class="ver-acts">' + (v.preview_url ? '<button class="ver-view" onclick="viewImg(\'' + v.preview_url + '\',\'' + label + ' v' + v.version + '\')">&#128269; View</button>' : '') +
-          '<a href="' + (v.download_url||'#') + '" class="' + (isCur?'ver-dl-gold':'ver-dl-grey') + '" download>&#11015; DL</a></div></div></div></div></div>';
-      } else {
-        var r = item.data, ip = r.status === 'in_progress';
-        var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-        return '<div class="titem"><div class="tnode ' + (ip?'tnode-pend':'tnode-res') + '">' + (ip?'&#9203;':'&#10003;') + '</div>' +
-          '<div style="flex:1;padding-top:4px"><div class="req-card ' + (ip?'req-pend':'req-res') + '">' +
+    var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
+
+    var bodyHtml = '';
+    versionNums.forEach(function(vn){
+      var filesAtV = versionGroups[vn];
+      var isCur = vn === f.latest_version;
+      var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+      bodyHtml += '<div class="vgroup">' +
+        '<div class="vgroup-head">' +
+          '<div class="vgroup-num ' + (isCur?'current':'old') + '">v' + vn + '</div>' +
+          '<div class="vgroup-label">Version ' + vn + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
+          '<div class="vgroup-date">' + date + '</div>' +
+        '</div>' +
+        '<div class="vgroup-files">';
+      filesAtV.forEach(function(v,i){
+        var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
+        var thumb = v.preview_url ? '<img src="' + v.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+        bodyHtml += '<div class="file-row">' +
+          '<div class="file-thumb" onclick="viewImg(\'' + (v.preview_url||'') + '\',\'' + label + ' v' + vn + ' ' + fileLabel + '\')">' + thumb + '</div>' +
+          '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
+          '<a href="' + (v.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
+        '</div>';
+      });
+      bodyHtml += '</div></div>';
+
+      // Insert edit request for this version if exists
+      var reqAtV = f.edit_requests.filter(function(r){ return r.version_at_time === vn; })[0];
+      if (reqAtV) {
+        var ip = reqAtV.status === 'in_progress';
+        var rDate = reqAtV.created_at ? new Date(reqAtV.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '">' +
           '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
           (ip ? '<span class="pulse" style="width:6px;height:6px;background:#d97706;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
           '</div><span class="req-date">' + rDate + '</span></div>' +
-          '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p></div></div></div>';
+          '<p class="req-note">&ldquo;' + (reqAtV.customer_note||'') + '&rdquo;</p></div>';
       }
-    }).join('');
+    });
+
     document.getElementById('drawer-root').innerHTML =
       '<div class="overlay" onclick="closeDrawer()"><div class="drawer" onclick="event.stopPropagation()">' +
       '<div class="drawer-head"><div><div class="drawer-title">' + label + ' &mdash; History</div>' +
-      '<div class="drawer-sub">' + f.all_versions.length + ' version' + (f.all_versions.length!==1?'s':'') + ' &middot; ' + f.edit_requests.length + ' request' + (f.edit_requests.length!==1?'s':'') + '</div></div>' +
+      '<div class="drawer-sub">' + versionNums.length + ' version' + (versionNums.length!==1?'s':'') + ' &middot; ' + f.edit_requests.length + ' request' + (f.edit_requests.length!==1?'s':'') + '</div></div>' +
       '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
-      '<div class="drawer-body"><div class="timeline"><div class="tline-bar"></div>' + tHtml + '</div></div></div></div>';
+      '<div class="drawer-body">' + bodyHtml + '</div></div></div>';
   };
 
   window.closeDrawer = function() { document.getElementById('drawer-root').innerHTML = ''; };
