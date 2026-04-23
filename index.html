@@ -451,7 +451,16 @@
     .then(function(r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       delete _attachments[fid];
-      document.getElementById('act-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div>';
+      var card = document.getElementById('card-' + fid);
+      var f = JSON.parse(card.dataset.file);
+      var hasHistory = f.all_versions.length > 1 || f.edit_requests.length > 0;
+      var actEl = document.getElementById('act-' + fid);
+      var html = '<div class="sent">&#10003; Sent! Check your email for updates.</div>';
+      if (hasHistory) {
+        html += '<button class="btn btn-hist" onclick="openHistory(\'' + fid + '\')">&#128339; History (' + f.latest_version + 'v &middot; ' + f.edit_requests.length + ' req)</button>';
+      }
+      html += '<button class="btn btn-edit" onclick="openEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>';
+      actEl.innerHTML = html;
     })
     .catch(function(err) {
       document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
