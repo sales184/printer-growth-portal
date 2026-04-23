@@ -71,9 +71,16 @@
     .btn-pend { background: #f5f0e8; border: 1.5px solid #e8e2d8; color: #c4b89a; cursor: not-allowed; }
     .btn-send { background: #d97706; color: #fff; font-weight: 700; flex: 2; }
     .btn-cancel { background: transparent; border: 1.5px solid #e8e2d8; color: #a89880; flex: 1; }
+    .btn-attach { background: transparent; border: 1.5px dashed #c4b89a; color: #7a6a55; padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer; text-align: center; width: 100%; font-family: 'DM Sans', sans-serif; }
+    .btn-attach:hover { border-color: #d97706; color: #d97706; }
     .btn-row { display: flex; gap: 6px; }
     .sent { padding: 9px 0; text-align: center; color: #059669; font-size: 12px; font-weight: 600; }
     textarea { width: 100%; height: 68px; padding: 9px 11px; border: 1.5px solid #d1c5a5; border-radius: 8px; resize: none; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #1a1208; background: #fffdf8; outline: none; }
+    .attachments-list { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+    .attachment-item { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: #f0ece4; border-radius: 6px; font-size: 11px; color: #3d3020; }
+    .attachment-item .ax-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .attachment-item .ax-remove { background: none; border: none; color: #a89880; cursor: pointer; padding: 0 4px; font-size: 14px; }
+    .attachment-item .ax-remove:hover { color: #d97706; }
     .footer-note { margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0ece4; color: #c4b89a; font-size: 11px; text-align: center; }
     .overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(10,8,5,0.6); backdrop-filter: blur(3px); display: flex; align-items: flex-end; justify-content: center; }
     .drawer { background: #fffdf8; border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 -8px 40px rgba(0,0,0,0.2); }
@@ -130,10 +137,12 @@
 (function(){
   var SUPABASE_URL  = 'https://smmvhozhzeemojqrazbl.supabase.co';
   var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us';
+  var STORAGE_BUCKET = 'File Uploads';
   var EDIT_ENDPOINT = '/api/edit';
 
   var _ordersCache = null;
   var _customerEmail = null;
+  var _attachments = {}; // { fileId: [{name, url}, ...] }
 
   var token = new URLSearchParams(window.location.search).get('token');
   if (!token) { showNotFound(); return; }
@@ -142,6 +151,26 @@
     return fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + params, {
       headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
     }).then(function(r){ return r.json(); });
+  }
+
+  function uploadFile(file, pathPrefix) {
+    var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    var path = pathPrefix + '/' + Date.now() + '-' + safeName;
+    var encodedBucket = encodeURIComponent(STORAGE_BUCKET);
+    var url = SUPABASE_URL + '/storage/v1/object/' + encodedBucket + '/' + encodeURIComponent(path);
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + SUPABASE_ANON,
+        'apikey': SUPABASE_ANON,
+        'Content-Type': file.type || 'application/octet-stream',
+        'x-upsert': 'true'
+      },
+      body: file
+    }).then(function(r){
+      if (!r.ok) throw new Error('Upload failed: ' + r.status);
+      return SUPABASE_URL + '/storage/v1/object/public/' + encodedBucket + '/' + encodeURIComponent(path);
+    });
   }
 
   sq('customers', 'select=*&token=eq.' + token + '&limit=1').then(function(customers) {
@@ -160,13 +189,11 @@
         files = files.map(function(f) {
           f.all_versions  = versions.filter(function(v){ return v.file_id === f.id; });
           f.edit_requests = requests.filter(function(r){ return r.file_id === f.id; });
-          // compute highest version and files at that version
           if (f.all_versions.length) {
             var maxV = Math.max.apply(null, f.all_versions.map(function(v){ return v.version; }));
             f.latest_version = maxV;
             f.current_files = f.all_versions.filter(function(v){ return v.version === maxV; });
           } else {
-            // no versions stored, fall back to the files row itself
             f.latest_version = f.version || 1;
             f.current_files = [{
               id: 'base-' + f.id,
@@ -305,13 +332,49 @@
   }
 
   window.openEdit = function(fid, subtaskId, label, ce) {
+    _attachments[fid] = [];
     document.getElementById('act-' + fid).innerHTML =
       '<textarea id="note-' + fid + '" placeholder="Describe what needs to change on ' + label + '..."></textarea>' +
+      '<input type="file" id="fileinput-' + fid + '" multiple style="display:none" onchange="handleAttach(\'' + fid + '\')">' +
+      '<button class="btn-attach" onclick="document.getElementById(\'fileinput-' + fid + '\').click()">&#128206; Attach files (optional)</button>' +
+      '<div class="attachments-list" id="ax-list-' + fid + '"></div>' +
       '<div class="btn-row"><button class="btn btn-cancel" style="flex:1" onclick="cancelEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">Cancel</button>' +
       '<button class="btn btn-send" style="flex:2" onclick="sendEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">Send Request</button></div>';
   };
 
+  window.handleAttach = function(fid) {
+    var input = document.getElementById('fileinput-' + fid);
+    var list = document.getElementById('ax-list-' + fid);
+    Array.from(input.files).forEach(function(file){
+      var idx = _attachments[fid].length;
+      _attachments[fid].push({name: file.name, url: null, uploading: true});
+      var item = document.createElement('div');
+      item.className = 'attachment-item';
+      item.id = 'ax-' + fid + '-' + idx;
+      item.innerHTML = '<span class="ax-name">' + file.name + '</span><span style="color:#a89880;font-size:10px">Uploading...</span>';
+      list.appendChild(item);
+
+      uploadFile(file, 'edit-requests/' + fid).then(function(url){
+        _attachments[fid][idx].url = url;
+        _attachments[fid][idx].uploading = false;
+        item.innerHTML = '<span class="ax-name">&#10003; ' + file.name + '</span>' +
+          '<button class="ax-remove" onclick="removeAttach(\'' + fid + '\',' + idx + ')">&times;</button>';
+      }).catch(function(err){
+        item.innerHTML = '<span class="ax-name" style="color:#d97706">&#9888; ' + file.name + ' — upload failed</span>' +
+          '<button class="ax-remove" onclick="removeAttach(\'' + fid + '\',' + idx + ')">&times;</button>';
+      });
+    });
+    input.value = '';
+  };
+
+  window.removeAttach = function(fid, idx) {
+    _attachments[fid][idx] = null;
+    var el = document.getElementById('ax-' + fid + '-' + idx);
+    if (el) el.remove();
+  };
+
   window.cancelEdit = function(fid, subtaskId, label, ce) {
+    delete _attachments[fid];
     document.getElementById('act-' + fid).innerHTML =
       '<button class="btn btn-edit" onclick="openEdit(\'' + fid + '\',\'' + subtaskId + '\',\'' + label + '\',\'' + (ce||'') + '\')">&#9999; Request Edit</button>';
   };
@@ -319,6 +382,10 @@
   window.sendEdit = function(fid, subtaskId, label, ce) {
     var note = document.getElementById('note-' + fid).value.trim();
     if (!note) return;
+    var ax = (_attachments[fid] || []).filter(function(a){ return a && a.url; });
+    var stillUploading = (_attachments[fid] || []).some(function(a){ return a && a.uploading; });
+    if (stillUploading) { alert('Please wait for attachments to finish uploading.'); return; }
+
     document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
 
     fetch(EDIT_ENDPOINT, {
@@ -329,11 +396,13 @@
         file_name: label,
         note: note,
         customer_email: ce,
-        file_id: fid
+        file_id: fid,
+        attachments: ax.map(function(a){ return {name: a.name, url: a.url}; })
       })
     })
     .then(function(r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
+      delete _attachments[fid];
       document.getElementById('act-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div>';
     })
     .catch(function(err) {
@@ -345,8 +414,6 @@
     var card  = document.getElementById('card-' + fid);
     var f     = JSON.parse(card.dataset.file);
     var label = card.dataset.label;
-
-    // Group versions
     var versionGroups = {};
     f.all_versions.forEach(function(v){
       if (!versionGroups[v.version]) versionGroups[v.version] = [];
@@ -376,8 +443,6 @@
         '</div>';
       });
       bodyHtml += '</div></div>';
-
-      // Insert edit request for this version if exists
       var reqAtV = f.edit_requests.filter(function(r){ return r.version_at_time === vn; })[0];
       if (reqAtV) {
         var ip = reqAtV.status === 'in_progress';
