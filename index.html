@@ -478,37 +478,70 @@
     });
     var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
 
-    var bodyHtml = '';
+    // Build a merged timeline of version groups and edit requests, sorted by date ascending
+    var timeline = [];
     versionNums.forEach(function(vn){
       var filesAtV = versionGroups[vn];
-      var isCur = vn === f.latest_version;
-      var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-      bodyHtml += '<div class="vgroup">' +
-        '<div class="vgroup-head">' +
-          '<div class="vgroup-num ' + (isCur?'current':'old') + '">v' + vn + '</div>' +
-          '<div class="vgroup-label">Version ' + vn + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
-          '<div class="vgroup-date">' + date + '</div>' +
-        '</div>' +
-        '<div class="vgroup-files">';
-      filesAtV.forEach(function(v,i){
-        var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
-        var thumb = v.preview_url ? '<img src="' + v.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
-        bodyHtml += '<div class="file-row">' +
-          '<div class="file-thumb" onclick="viewImg(\'' + (v.preview_url||'') + '\',\'' + label + ' v' + vn + ' ' + fileLabel + '\')">' + thumb + '</div>' +
-          '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
-          '<a href="' + (v.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
-        '</div>';
-      });
-      bodyHtml += '</div></div>';
-      var reqAtV = f.edit_requests.filter(function(r){ return r.version_at_time === vn; })[0];
-      if (reqAtV) {
-        var ip = reqAtV.status === 'in_progress';
-        var rDate = reqAtV.created_at ? new Date(reqAtV.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-        bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '">' +
+      var ts = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).getTime() : 0;
+      timeline.push({ type: 'version', vn: vn, filesAtV: filesAtV, ts: ts });
+    });
+    f.edit_requests.forEach(function(r){
+      var ts = r.created_at ? new Date(r.created_at).getTime() : 0;
+      timeline.push({ type: 'request', data: r, ts: ts });
+    });
+    timeline.sort(function(a,b){ return a.ts - b.ts; });
+
+    var bodyHtml = '';
+    timeline.forEach(function(item){
+      if (item.type === 'version') {
+        var vn = item.vn;
+        var filesAtV = item.filesAtV;
+        var isCur = vn === f.latest_version;
+        var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        bodyHtml += '<div class="vgroup">' +
+          '<div class="vgroup-head">' +
+            '<div class="vgroup-num ' + (isCur?'current':'old') + '">v' + vn + '</div>' +
+            '<div class="vgroup-label">Version ' + vn + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
+            '<div class="vgroup-date">' + date + '</div>' +
+          '</div>' +
+          '<div class="vgroup-files">';
+        filesAtV.forEach(function(v,i){
+          var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
+          var thumb = v.preview_url ? '<img src="' + v.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+          bodyHtml += '<div class="file-row">' +
+            '<div class="file-thumb" onclick="viewImg(\'' + (v.preview_url||'') + '\',\'' + label + ' v' + vn + ' ' + fileLabel + '\')">' + thumb + '</div>' +
+            '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
+            '<a href="' + (v.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
+          '</div>';
+        });
+        bodyHtml += '</div></div>';
+      } else {
+        var r = item.data;
+        var ip = r.status === 'in_progress';
+        var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        var axHtml = '';
+        var atts = r.attachments;
+        if (typeof atts === 'string') {
+          try { atts = JSON.parse(atts); } catch(e){ atts = []; }
+        }
+        if (atts && atts.length) {
+          axHtml = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">' +
+            atts.map(function(a){
+              return '<a href="' + a.url + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border:1px solid #e8e2d8;border-radius:6px;font-size:11px;color:#3d3020;text-decoration:none;">' +
+                '<span style="color:#00aeef;">&#128206;</span>' +
+                '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.name || 'attachment') + '</span>' +
+                '<span style="color:#00aeef;font-weight:600;">View</span>' +
+              '</a>';
+            }).join('') +
+          '</div>';
+        }
+        bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
           '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
           (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
           '</div><span class="req-date">' + rDate + '</span></div>' +
-          '<p class="req-note">&ldquo;' + (reqAtV.customer_note||'') + '&rdquo;</p></div>';
+          '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
+          axHtml +
+          '</div>';
       }
     });
 
