@@ -586,6 +586,10 @@
       '<div class="drawer-sub">' + versionNums.length + ' version' + (versionNums.length!==1?'s':'') + ' &middot; ' + f.edit_requests.length + ' request' + (f.edit_requests.length!==1?'s':'') + '</div></div>' +
       '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
       '<div class="drawer-body">' + bodyHtml + '</div></div></div>';
+    setTimeout(function(){
+      var body = document.querySelector('.drawer-body');
+      if (body) body.scrollTop = body.scrollHeight;
+    }, 50);
   };
 
   window.closeDrawer = function() { document.getElementById('drawer-root').innerHTML = ''; };
