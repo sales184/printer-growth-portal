@@ -81,6 +81,10 @@
     .attachment-item .ax-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .attachment-item .ax-remove { background: none; border: none; color: #a89880; cursor: pointer; padding: 0 4px; font-size: 14px; }
     .attachment-item .ax-remove:hover { color: #d97706; }
+    .ax-progress-wrap { flex: 1; display: flex; align-items: center; gap: 6px; }
+    .ax-progress-bar { flex: 1; height: 5px; background: #e8e2d8; border-radius: 3px; overflow: hidden; }
+    .ax-progress-fill { height: 100%; background: #d97706; transition: width 0.2s; }
+    .ax-progress-pct { font-size: 10px; color: #7a6a55; font-family: monospace; min-width: 30px; text-align: right; }
     .footer-note { margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0ece4; color: #c4b89a; font-size: 11px; text-align: center; }
     .overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(10,8,5,0.6); backdrop-filter: blur(3px); display: flex; align-items: flex-end; justify-content: center; }
     .drawer { background: #fffdf8; border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 -8px 40px rgba(0,0,0,0.2); }
@@ -153,23 +157,32 @@
     }).then(function(r){ return r.json(); });
   }
 
-  function uploadFile(file, pathPrefix) {
+  function uploadFile(file, pathPrefix, onProgress) {
     var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     var path = pathPrefix + '/' + Date.now() + '-' + safeName;
     var encodedBucket = encodeURIComponent(STORAGE_BUCKET);
     var url = SUPABASE_URL + '/storage/v1/object/' + encodedBucket + '/' + encodeURIComponent(path);
-    return fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + SUPABASE_ANON,
-        'apikey': SUPABASE_ANON,
-        'Content-Type': file.type || 'application/octet-stream',
-        'x-upsert': 'true'
-      },
-      body: file
-    }).then(function(r){
-      if (!r.ok) throw new Error('Upload failed: ' + r.status);
-      return SUPABASE_URL + '/storage/v1/object/public/' + encodedBucket + '/' + encodeURIComponent(path);
+    return new Promise(function(resolve, reject){
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+      xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON);
+      xhr.setRequestHeader('apikey', SUPABASE_ANON);
+      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+      xhr.setRequestHeader('x-upsert', 'true');
+      xhr.upload.onprogress = function(e){
+        if (e.lengthComputable && onProgress) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+      xhr.onload = function(){
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(SUPABASE_URL + '/storage/v1/object/public/' + encodedBucket + '/' + encodeURIComponent(path));
+        } else {
+          reject(new Error('Upload failed: ' + xhr.status));
+        }
+      };
+      xhr.onerror = function(){ reject(new Error('Network error')); };
+      xhr.send(file);
     });
   }
 
@@ -351,10 +364,17 @@
       var item = document.createElement('div');
       item.className = 'attachment-item';
       item.id = 'ax-' + fid + '-' + idx;
-      item.innerHTML = '<span class="ax-name">' + file.name + '</span><span style="color:#a89880;font-size:10px">Uploading...</span>';
+      item.innerHTML = '<span class="ax-name" style="flex:none;max-width:40%">' + file.name + '</span>' +
+        '<div class="ax-progress-wrap"><div class="ax-progress-bar"><div class="ax-progress-fill" id="ax-fill-' + fid + '-' + idx + '" style="width:0%"></div></div>' +
+        '<span class="ax-progress-pct" id="ax-pct-' + fid + '-' + idx + '">0%</span></div>';
       list.appendChild(item);
 
-      uploadFile(file, 'edit-requests/' + fid).then(function(url){
+      uploadFile(file, 'edit-requests/' + fid, function(pct){
+        var fill = document.getElementById('ax-fill-' + fid + '-' + idx);
+        var pctEl = document.getElementById('ax-pct-' + fid + '-' + idx);
+        if (fill) fill.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = pct + '%';
+      }).then(function(url){
         _attachments[fid][idx].url = url;
         _attachments[fid][idx].uploading = false;
         item.innerHTML = '<span class="ax-name">&#10003; ' + file.name + '</span>' +
