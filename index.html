@@ -9,7 +9,8 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #f5f0e8; font-family: 'DM Sans', sans-serif; min-height: 100vh; }
     .nav { background: #fff; border-bottom: 1px solid #e8e2d8; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
-    .nav-logo { font-family: 'Lora', serif; font-size: 18px; color: #1a1208; text-decoration: none; }
+    .nav-logo { display: inline-flex; align-items: center; text-decoration: none; }
+    .nav-logo img { height: 36px; width: auto; display: block; }
     .nav-login { font-size: 13px; color: #7a6a55; text-decoration: none; }
     .container { max-width: 1080px; margin: 0 auto; padding: 40px 24px; }
     .customer-header { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
@@ -29,20 +30,20 @@
     .files-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     .files-badges { display: flex; gap: 8px; flex-wrap: wrap; }
     .badge { display: flex; align-items: center; gap: 6px; border-radius: 99px; padding: 5px 12px; font-size: 11px; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
-    .badge-progress { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .badge-progress { background: #e6f7fd; border: 1px solid #b3e5fa; color: #005577; }
     .badge-revised { background: #f0fdf4; border: 1px solid #bbf7d0; color: #059669; }
     .badge-waiting { background: #f5f0e8; border: 1px solid #e8e2d8; color: #7a6a55; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
     .card { background: #fffdf8; border: 1.5px solid #e8e2d8; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s; }
     .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
-    .card.inprogress { border-color: #d97706; box-shadow: 0 0 0 3px #d9770618; }
+    .card.inprogress { border-color: #00aeef; box-shadow: 0 0 0 3px #00aeef18; }
     .card.revised { border-color: #d1c5a5; }
     .card.original { border-color: #c4b89a; }
     .card-header { padding: 12px 14px 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0ece4; gap: 10px; }
     .design-name { font-family: 'Lora', serif; font-weight: 700; font-size: 14px; color: #1a1208; line-height: 1.2; }
     .design-label { font-size: 10px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
     .card-status-badge { font-size: 9px; padding: 3px 8px; border-radius: 99px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; flex-shrink: 0; }
-    .card-status-badge.progress { background: #d97706; color: #fff; }
+    .card-status-badge.progress { background: #00aeef; color: #fff; }
     .card-status-badge.revised { background: #059669; color: #fff; }
     .card-status-badge.original { background: #7a6a55; color: #fff; }
     .files-list { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -53,26 +54,26 @@
     .file-info { flex: 1; min-width: 0; }
     .file-label { font-size: 12px; font-weight: 600; color: #1a1208; }
     .file-meta { font-size: 11px; color: #a89880; margin-top: 2px; }
-    .file-dl { font-size: 11px; font-weight: 600; text-decoration: none; color: #d97706; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #fde68a; flex-shrink: 0; }
-    .file-dl:hover { background: #fffbeb; }
+    .file-dl { font-size: 11px; font-weight: 600; text-decoration: none; color: #00aeef; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #b3e5fa; flex-shrink: 0; }
+    .file-dl:hover { background: #e6f7fd; }
     .progress-notice, .waiting-notice { border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start; margin: 0 14px 10px; }
-    .progress-notice { background: #fffbeb; border: 1px solid #fde68a; }
+    .progress-notice { background: #e6f7fd; border: 1px solid #b3e5fa; }
     .waiting-notice { background: #f5f0e8; border: 1px solid #e8e2d8; }
     .progress-label, .waiting-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
-    .progress-label { color: #92400e; }
+    .progress-label { color: #005577; }
     .waiting-label { color: #7a6a55; }
     .progress-text, .waiting-text { font-size: 11px; margin-top: 2px; line-height: 1.4; }
-    .progress-text { color: #b45309; }
+    .progress-text { color: #0088bb; }
     .waiting-text { color: #7a6a55; }
     .actions { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 6px; margin-top: auto; border-top: 1px solid #f0ece4; }
     .btn { width: 100%; padding: 9px 0; border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-align: center; border: none; text-decoration: none; display: block; }
     .btn-hist { background: transparent; border: 1.5px solid #e8e2d8; color: #7a6a55; }
     .btn-edit { background: transparent; border: 1.5px solid #e8e2d8; color: #7a6a55; }
     .btn-pend { background: #f5f0e8; border: 1.5px solid #e8e2d8; color: #c4b89a; cursor: not-allowed; }
-    .btn-send { background: #d97706; color: #fff; font-weight: 700; flex: 2; }
+    .btn-send { background: #00aeef; color: #fff; font-weight: 700; flex: 2; }
     .btn-cancel { background: transparent; border: 1.5px solid #e8e2d8; color: #a89880; flex: 1; }
     .btn-attach { background: transparent; border: 1.5px dashed #c4b89a; color: #7a6a55; padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer; text-align: center; width: 100%; font-family: 'DM Sans', sans-serif; }
-    .btn-attach:hover { border-color: #d97706; color: #d97706; }
+    .btn-attach:hover { border-color: #00aeef; color: #00aeef; }
     .btn-row { display: flex; gap: 6px; }
     .sent { padding: 9px 0; text-align: center; color: #059669; font-size: 12px; font-weight: 600; }
     textarea { width: 100%; height: 68px; padding: 9px 11px; border: 1.5px solid #d1c5a5; border-radius: 8px; resize: none; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #1a1208; background: #fffdf8; outline: none; }
@@ -80,10 +81,10 @@
     .attachment-item { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: #f0ece4; border-radius: 6px; font-size: 11px; color: #3d3020; }
     .attachment-item .ax-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .attachment-item .ax-remove { background: none; border: none; color: #a89880; cursor: pointer; padding: 0 4px; font-size: 14px; }
-    .attachment-item .ax-remove:hover { color: #d97706; }
+    .attachment-item .ax-remove:hover { color: #00aeef; }
     .ax-progress-wrap { flex: 1; display: flex; align-items: center; gap: 6px; }
     .ax-progress-bar { flex: 1; height: 5px; background: #e8e2d8; border-radius: 3px; overflow: hidden; }
-    .ax-progress-fill { height: 100%; background: #d97706; transition: width 0.2s; }
+    .ax-progress-fill { height: 100%; background: #00aeef; transition: width 0.2s; }
     .ax-progress-pct { font-size: 10px; color: #7a6a55; font-family: monospace; min-width: 30px; text-align: right; }
     .footer-note { margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0ece4; color: #c4b89a; font-size: 11px; text-align: center; }
     .overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(10,8,5,0.6); backdrop-filter: blur(3px); display: flex; align-items: flex-end; justify-content: center; }
@@ -99,15 +100,15 @@
     .vgroup-num.current { background: #1a1208; color: #fff; }
     .vgroup-num.old { background: #f0ece4; color: #7a6a55; border: 2px solid #d1c5a5; }
     .vgroup-label { font-weight: 700; font-size: 13px; color: #1a1208; }
-    .vgroup-cur-badge { background: #d97706; color: #fff; font-size: 9px; padding: 2px 7px; border-radius: 99px; font-weight: 700; letter-spacing: 1px; margin-left: 8px; }
+    .vgroup-cur-badge { background: #00aeef; color: #fff; font-size: 9px; padding: 2px 7px; border-radius: 99px; font-weight: 700; letter-spacing: 1px; margin-left: 8px; }
     .vgroup-date { font-size: 11px; color: #a89880; margin-left: auto; }
     .vgroup-files { display: flex; flex-direction: column; gap: 8px; margin-left: 42px; }
     .req-card { border-radius: 12px; padding: 10px 14px; margin-left: 42px; margin-top: 8px; margin-bottom: 8px; }
     .req-res { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
-    .req-pend { background: #fffbeb; border: 1.5px solid #fde68a; }
+    .req-pend { background: #e6f7fd; border: 1.5px solid #b3e5fa; }
     .req-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .req-lbl-res { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; font-family: monospace; color: #059669; display: flex; align-items: center; gap: 5px; }
-    .req-lbl-pend { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; font-family: monospace; color: #92400e; display: flex; align-items: center; gap: 5px; }
+    .req-lbl-pend { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; font-family: monospace; color: #005577; display: flex; align-items: center; gap: 5px; }
     .req-date { font-size: 10px; color: #a89880; font-family: monospace; }
     .req-note { margin: 0; font-size: 13px; color: #3d3020; line-height: 1.5; font-style: italic; }
     .viewer-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.93); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
@@ -126,7 +127,7 @@
 <body>
 
 <nav class="nav">
-  <a href="https://printergrowth.com" class="nav-logo">Printer Growth</a>
+  <a href="https://printergrowth.com" class="nav-logo"><img src="data:image/jpeg;base64,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" alt="Printer Growth" style="height:40px;display:block"></a>
   <a href="https://printergrowth.com/account" class="nav-login">My Account &rarr;</a>
 </nav>
 
@@ -288,7 +289,7 @@
     if (inProg)  html += ' &middot; ' + inProg + ' in progress';
     if (waiting) html += ' &middot; ' + waiting + ' awaiting';
     html += '</div></div><div class="files-badges">';
-    if (inProg)  html += '<div class="badge badge-progress"><span class="pulse" style="width:7px;height:7px;background:#d97706;"></span>' + inProg + ' IN PROGRESS</div>';
+    if (inProg)  html += '<div class="badge badge-progress"><span class="pulse" style="width:7px;height:7px;background:#00aeef;"></span>' + inProg + ' IN PROGRESS</div>';
     if (revised) html += '<div class="badge badge-revised">&#10003; ' + revised + ' REVISED</div>';
     if (waiting) html += '<div class="badge badge-waiting">&#9203; ' + waiting + ' AWAITING</div>';
     html += '</div></div><div class="grid" id="grid-' + orderId + '"></div>';
@@ -379,7 +380,7 @@
         item.innerHTML = '<span class="ax-name">&#10003; ' + file.name + '</span>' +
           '<button class="ax-remove" onclick="removeAttach(\'' + fid + '\',' + idx + ')">&times;</button>';
       }).catch(function(err){
-        item.innerHTML = '<span class="ax-name" style="color:#d97706">&#9888; ' + file.name + ' — upload failed</span>' +
+        item.innerHTML = '<span class="ax-name" style="color:#00aeef">&#9888; ' + file.name + ' — upload failed</span>' +
           '<button class="ax-remove" onclick="removeAttach(\'' + fid + '\',' + idx + ')">&times;</button>';
       });
     });
@@ -425,7 +426,7 @@
       document.getElementById('act-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div>';
     })
     .catch(function(err) {
-      document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#d97706;font-size:12px;">Error sending. Please try again.</div>';
+      document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
     });
   };
 
@@ -468,7 +469,7 @@
         var rDate = reqAtV.created_at ? new Date(reqAtV.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
         bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '">' +
           '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
-          (ip ? '<span class="pulse" style="width:6px;height:6px;background:#d97706;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
+          (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
           '</div><span class="req-date">' + rDate + '</span></div>' +
           '<p class="req-note">&ldquo;' + (reqAtV.customer_note||'') + '&rdquo;</p></div>';
       }
