@@ -218,10 +218,10 @@
     var customer = customers[0];
     Promise.all([
       sq('orders', 'select=*&customer_id=eq.' + customer.id + '&order=created_at.desc'),
-      sq('quotes', 'select=*&customer_email=eq.' + encodeURIComponent(customer.email) + '&status=neq.paid&order=created_at.desc')
+      sq('quotes', 'select=*&customer_email=eq.' + encodeURIComponent(customer.email) + '&status=not.eq.paid&order=created_at.desc').catch(function(){ return []; })
     ]).then(function(topRes) {
-      var orders = topRes[0]||[];
-      var quotes = topRes[1]||[];
+      var orders = (Array.isArray(topRes[0]) ? topRes[0] : []);
+      var quotes = (Array.isArray(topRes[1]) ? topRes[1] : []);
       if (!orders.length && !quotes.length) { renderNoOrders(customer); return; }
       var fetchOrders = orders.length ? (function(){
         var orderIds = orders.map(function(o){ return o.shopify_order_id; });
