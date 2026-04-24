@@ -124,28 +124,6 @@
     .loading { text-align: center; padding: 60px 24px; color: #a89880; font-size: 14px; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
     .pulse { display: inline-block; border-radius: 50%; animation: pulse 1.5s infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid #e8e2d8; }
-    .tab { padding: 10px 24px; font-size: 14px; font-weight: 600; color: #a89880; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', sans-serif; }
-    .tab.active { color: #00aeef; border-bottom-color: #00aeef; }
-    .tab .tab-badge { background: #00aeef; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 99px; margin-left: 6px; }
-    .quote-card { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
-    .quote-card.quote-ready { border-color: #00aeef; box-shadow: 0 0 0 3px #00aeef18; }
-    .quote-card.pending { border-color: #e8e2d8; }
-    .quote-thumb { width: 80px; height: 80px; border-radius: 8px; background: #f0ece4; overflow: hidden; flex-shrink: 0; }
-    .quote-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .quote-thumb-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #c4b89a; }
-    .quote-info { flex: 1; min-width: 200px; }
-    .quote-eyebrow { font-size: 11px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .quote-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 700; color: #1a1208; }
-    .quote-meta { font-size: 13px; color: #7a6a55; margin-top: 4px; }
-    .quote-status { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
-    .quote-status-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; padding: 4px 10px; border-radius: 99px; }
-    .quote-status-badge.pending { background: #f5f0e8; border: 1px solid #e8e2d8; color: #7a6a55; }
-    .quote-status-badge.ready { background: #e6f7fd; border: 1px solid #b3e5fa; color: #005577; }
-    .quote-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-shrink: 0; }
-    .btn-pay { background: #00aeef; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
-    .btn-pay:hover { background: #0099d4; }
   </style>
 </head>
 <body>
@@ -216,113 +194,58 @@
   sq('customers', 'select=*&token=eq.' + token + '&limit=1').then(function(customers) {
     if (!customers || !customers.length) { showNotFound(); return; }
     var customer = customers[0];
-    Promise.all([
-      sq('orders', 'select=*&customer_id=eq.' + customer.id + '&order=created_at.desc'),
-      sq('quotes', 'select=*&customer_email=eq.' + encodeURIComponent(customer.email) + '&status=not.eq.paid&order=created_at.desc').catch(function(){ return []; })
-    ]).then(function(topRes) {
-      var orders = (Array.isArray(topRes[0]) ? topRes[0] : []);
-      var quotes = (Array.isArray(topRes[1]) ? topRes[1] : []);
-      if (!orders.length && !quotes.length) { renderNoOrders(customer); return; }
-      var fetchOrders = orders.length ? (function(){
-        var orderIds = orders.map(function(o){ return o.shopify_order_id; });
-        var orderIdFilter = 'shopify_order_id=in.(' + orderIds.join(',') + ')';
-        return Promise.all([
-          sq('files', 'select=*&' + orderIdFilter + '&order=created_at.asc'),
-          sq('file_versions', 'select=*&order=version.asc'),
-          sq('edit_requests', 'select=*&order=created_at.asc')
-        ]).then(function(res) {
-          var files = res[0]||[], versions = res[1]||[], requests = res[2]||[];
-          files = files.map(function(f) {
-            f.all_versions  = versions.filter(function(v){ return v.file_id === f.id; });
-            f.edit_requests = requests.filter(function(r){ return r.file_id === f.id; });
-            if (f.all_versions.length) {
-              var maxV = Math.max.apply(null, f.all_versions.map(function(v){ return v.version; }));
-              f.latest_version = maxV;
-              f.current_files = f.all_versions.filter(function(v){ return v.version === maxV; });
-            } else {
-              f.latest_version = f.version || 1;
-              f.current_files = [{
-                id: 'base-' + f.id,
-                version: f.version || 1,
-                download_url: f.download_url,
-                preview_url: f.preview_url,
-                uploaded_at: f.created_at
-              }];
-            }
-            return f;
-          });
-          return orders.map(function(o){
-            o.files = files.filter(function(f){ return String(f.shopify_order_id) === String(o.shopify_order_id); });
-            return o;
-          });
+    sq('orders', 'select=*&customer_id=eq.' + customer.id + '&order=created_at.desc').then(function(orders) {
+      if (!orders || !orders.length) { renderNoOrders(customer); return; }
+      var orderIds = orders.map(function(o){ return o.shopify_order_id; });
+      var orderIdFilter = 'shopify_order_id=in.(' + orderIds.join(',') + ')';
+      Promise.all([
+        sq('files', 'select=*&' + orderIdFilter + '&order=created_at.asc'),
+        sq('file_versions', 'select=*&order=version.asc'),
+        sq('edit_requests', 'select=*&order=created_at.asc')
+      ]).then(function(res) {
+        var files = res[0]||[], versions = res[1]||[], requests = res[2]||[];
+        files = files.map(function(f) {
+          f.all_versions  = versions.filter(function(v){ return v.file_id === f.id; });
+          f.edit_requests = requests.filter(function(r){ return r.file_id === f.id; });
+          if (f.all_versions.length) {
+            var maxV = Math.max.apply(null, f.all_versions.map(function(v){ return v.version; }));
+            f.latest_version = maxV;
+            f.current_files = f.all_versions.filter(function(v){ return v.version === maxV; });
+          } else {
+            f.latest_version = f.version || 1;
+            f.current_files = [{
+              id: 'base-' + f.id,
+              version: f.version || 1,
+              download_url: f.download_url,
+              preview_url: f.preview_url,
+              uploaded_at: f.created_at
+            }];
+          }
+          return f;
         });
-      })() : Promise.resolve([]);
-
-      fetchOrders.then(function(resolvedOrders) {
-        _ordersCache = resolvedOrders;
+        orders = orders.map(function(o){
+          o.files = files.filter(function(f){ return String(f.shopify_order_id) === String(o.shopify_order_id); });
+          return o;
+        });
+        _ordersCache = orders;
         _customerEmail = customer.email;
-        render(customer, resolvedOrders, quotes);
+        render(customer, orders);
       });
     });
   }).catch(showNotFound);
 
-  function render(customer, orders, quotes) {
-    quotes = quotes || [];
+  function render(customer, orders) {
     var html = '<div class="customer-header"><div><div class="customer-eyebrow">Welcome back</div>';
     html += '<div class="customer-title">' + (customer.name || customer.email) + '</div>';
     html += '<div class="customer-meta"><span>' + orders.length + ' order' + (orders.length!==1?'s':'') + '</span></div></div>';
     html += '<a href="https://printergrowth.com/pages/artwork-services" class="btn-order-more" target="_blank">+ Order More Artwork</a></div>';
-    html += '<div class="tabs">';
-    html += '<button class="tab active" id="tab-orders" onclick="window.switchTab(this.dataset.tab)" data-tab="orders">Orders</button>';
-    html += '<button class="tab" id="tab-quotes" onclick="window.switchTab(this.dataset.tab)" data-tab="quotes">Quotes' + (quotes.length ? '<span class="tab-badge">' + quotes.length + '</span>' : '') + '</button>';
-    html += '</div>';
-    html += '<div id="tab-content-orders"><div id="orders-list"></div></div>';
-    html += '<div id="tab-content-quotes" style="display:none"><div id="quotes-list"></div></div>';
+    html += '<div id="orders-list"></div>';
     document.getElementById('app-root').innerHTML = html;
     var list = document.getElementById('orders-list');
     orders.forEach(function(o,i){
       list.appendChild(buildOrderCard(o));
       if (i === 0) setTimeout(function(){ toggleOrder(o.shopify_order_id); }, 10);
     });
-    var qlist = document.getElementById('quotes-list');
-    if (quotes.length) {
-      quotes.forEach(function(q){ qlist.appendChild(buildQuoteCard(q)); });
-    } else {
-      qlist.innerHTML = '<div class="not-found"><h1>No quotes yet</h1><p>When you request a vector quote it will appear here.</p></div>';
-    }
-  }
-
-  window.switchTab = function(tab) {
-    document.getElementById('tab-content-orders').style.display = tab === 'orders' ? '' : 'none';
-    document.getElementById('tab-content-quotes').style.display = tab === 'quotes' ? '' : 'none';
-    document.getElementById('tab-orders').className = 'tab' + (tab === 'orders' ? ' active' : '');
-    document.getElementById('tab-quotes').className = 'tab' + (tab === 'quotes' ? ' active' : '');
-  };
-
-  function buildQuoteCard(q) {
-    var isReady = q.status === 'quote_ready';
-    var date = q.created_at ? new Date(q.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-    var card = document.createElement('div');
-    card.className = 'quote-card ' + (isReady ? 'quote-ready' : 'pending');
-    var thumb = q.preview_url
-      ? '<img src="' + q.preview_url + '" onerror="this.parentElement.innerHTML='<div class=quote-thumb-ph>&#128444;</div>'">'
-      : '<div class="quote-thumb-ph">&#128444;</div>';
-    var statusBadge = isReady
-      ? '<span class="quote-status-badge ready"><span class="pulse" style="width:6px;height:6px;background:#00aeef;display:inline-block;border-radius:50%;margin-right:4px;"></span>QUOTE READY</span>'
-      : '<span class="quote-status-badge pending">&#9203; WAITING FOR QUOTE</span>';
-    var actionBtn = isReady && q.payment_link
-      ? '<a href="' + q.payment_link + '" class="btn-pay" target="_blank">View &amp; Pay Invoice &rarr;</a>'
-      : '';
-    card.innerHTML =
-      '<div class="quote-thumb">' + thumb + '</div>' +
-      '<div class="quote-info">' +
-        '<div class="quote-eyebrow">Vector Quote' + (q.quote_number ? ' #' + q.quote_number : '') + '</div>' +
-        '<div class="quote-title">Vector Art Request</div>' +
-        '<div class="quote-meta">' + date + '</div>' +
-        '<div class="quote-status">' + statusBadge + '</div>' +
-      '</div>' +
-      (actionBtn ? '<div class="quote-actions">' + actionBtn + '</div>' : '');
-    return card;
   }
 
   function buildOrderCard(order) {
