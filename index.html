@@ -43,6 +43,7 @@
     .card-header { padding: 12px 14px 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0ece4; gap: 10px; }
     .design-name { font-family: 'Lora', serif; font-weight: 700; font-size: 14px; color: #1a1208; line-height: 1.2; }
     .design-label { font-size: 10px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .design-service { font-size: 10px; color: #00aeef; font-weight: 700; letter-spacing: 0.5px; margin-top: 1px; text-transform: uppercase; font-family: monospace; }
     .card-status-badge { font-size: 9px; padding: 3px 8px; border-radius: 99px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; flex-shrink: 0; }
     .card-status-badge.progress { background: #00aeef; color: #fff; }
     .card-status-badge.revised { background: #059669; color: #fff; }
@@ -339,8 +340,10 @@
     var notice = inProg ? '<div class="progress-notice"><span style="font-size:14px;flex-shrink:0">&#9203;</span><div><div class="progress-label">REVISION IN PROGRESS</div><div class="progress-text">Your edit request is being worked on. We\'ll email you when finished.</div></div></div>'
                 : isAwaiting ? '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">ORIGINAL DESIGN</div><div class="waiting-text">This is your uploaded file. Our team is preparing the final artwork.</div></div></div>' : '';
 
+    var serviceLabel = f.service_type ? '<div class="design-service">' + f.service_type + '</div>' : '';
+
     card.innerHTML =
-      '<div class="card-header"><div><div class="design-name">' + label + '</div><div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div></div>' + statusBadge + '</div>' +
+      '<div class="card-header"><div><div class="design-name">' + label + '</div>' + serviceLabel + '<div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div></div>' + statusBadge + '</div>' +
       filesListHtml +
       notice +
       '<div class="actions" id="act-' + f.id + '">' +
