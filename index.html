@@ -273,8 +273,8 @@
     html += '<div class="customer-meta"><span>' + orders.length + ' order' + (orders.length!==1?'s':'') + '</span></div></div>';
     html += '<a href="https://printergrowth.com/pages/artwork-services" class="btn-order-more" target="_blank">+ Order More Artwork</a></div>';
     html += '<div class="tabs">';
-    html += '<button class="tab active" id="tab-orders" onclick="switchTab('orders')">Orders</button>';
-    html += '<button class="tab" id="tab-quotes" onclick="switchTab('quotes')">Quotes' + (quotes.length ? '<span class="tab-badge">' + quotes.length + '</span>' : '') + '</button>';
+    html += '<button class="tab active" id="tab-orders" onclick="switchTab(&quot;orders&quot;)">Orders</button>';
+    html += '<button class="tab" id="tab-quotes" onclick="switchTab(&quot;quotes&quot;)">Quotes' + (quotes.length ? '<span class="tab-badge">' + quotes.length + '</span>' : '') + '</button>';
     html += '</div>';
     html += '<div id="tab-content-orders"><div id="orders-list"></div></div>';
     html += '<div id="tab-content-quotes" style="display:none"><div id="quotes-list"></div></div>';
