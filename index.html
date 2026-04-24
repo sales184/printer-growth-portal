@@ -18,6 +18,10 @@
     .customer-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 700; color: #1a1208; }
     .customer-meta { display: flex; gap: 16px; color: #7a6a55; font-size: 13px; margin-top: 10px; flex-wrap: wrap; }
     .btn-order-more { background: #00aeef; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+    .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid #e8e2d8; }
+    .tab-btn { padding: 10px 24px; font-size: 14px; font-weight: 600; color: #a89880; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', sans-serif; transition: color 0.2s, border-color 0.2s; }
+    .tab-btn.active { color: #00aeef; border-bottom-color: #00aeef; }
+    .tab-badge { background: #00aeef; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 99px; margin-left: 6px; }
     .order-card { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; transition: box-shadow 0.2s, border-color 0.2s; }
     .order-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); border-color: #d1c5a5; }
     .order-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; cursor: pointer; }
@@ -122,6 +126,22 @@
     .not-found h1 { font-family: 'Lora', serif; font-size: 24px; color: #1a1208; margin-bottom: 12px; }
     .not-found p { color: #a89880; font-size: 14px; }
     .loading { text-align: center; padding: 60px 24px; color: #a89880; font-size: 14px; }
+    .quote-card { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+    .quote-card.quote-ready { border-color: #00aeef; box-shadow: 0 0 0 3px #00aeef18; }
+    .quote-thumb { width: 80px; height: 80px; border-radius: 8px; background: #f0ece4; overflow: hidden; flex-shrink: 0; }
+    .quote-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .quote-thumb-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #c4b89a; }
+    .quote-info { flex: 1; min-width: 200px; }
+    .quote-eyebrow { font-size: 11px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .quote-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 700; color: #1a1208; }
+    .quote-meta { font-size: 13px; color: #7a6a55; margin-top: 4px; }
+    .quote-status { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+    .quote-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; padding: 4px 10px; border-radius: 99px; }
+    .quote-badge-pending { background: #f5f0e8; border: 1px solid #e8e2d8; color: #7a6a55; }
+    .quote-badge-ready { background: #e6f7fd; border: 1px solid #b3e5fa; color: #005577; }
+    .quote-actions { display: flex; align-items: center; margin-left: auto; flex-shrink: 0; }
+    .btn-pay { background: #00aeef; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+    .btn-pay:hover { background: #0099d4; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
     .pulse { display: inline-block; border-radius: 50%; animation: pulse 1.5s infinite; }
   </style>
@@ -195,57 +215,120 @@
     if (!customers || !customers.length) { showNotFound(); return; }
     var customer = customers[0];
     sq('orders', 'select=*&customer_id=eq.' + customer.id + '&order=created_at.desc').then(function(orders) {
-      if (!orders || !orders.length) { renderNoOrders(customer); return; }
-      var orderIds = orders.map(function(o){ return o.shopify_order_id; });
-      var orderIdFilter = 'shopify_order_id=in.(' + orderIds.join(',') + ')';
-      Promise.all([
-        sq('files', 'select=*&' + orderIdFilter + '&order=created_at.asc'),
-        sq('file_versions', 'select=*&order=version.asc'),
-        sq('edit_requests', 'select=*&order=created_at.asc')
-      ]).then(function(res) {
-        var files = res[0]||[], versions = res[1]||[], requests = res[2]||[];
-        files = files.map(function(f) {
-          f.all_versions  = versions.filter(function(v){ return v.file_id === f.id; });
-          f.edit_requests = requests.filter(function(r){ return r.file_id === f.id; });
-          if (f.all_versions.length) {
-            var maxV = Math.max.apply(null, f.all_versions.map(function(v){ return v.version; }));
-            f.latest_version = maxV;
-            f.current_files = f.all_versions.filter(function(v){ return v.version === maxV; });
-          } else {
-            f.latest_version = f.version || 1;
-            f.current_files = [{
-              id: 'base-' + f.id,
-              version: f.version || 1,
-              download_url: f.download_url,
-              preview_url: f.preview_url,
-              uploaded_at: f.created_at
-            }];
-          }
-          return f;
+      orders = orders || [];
+      sq('quotes', 'select=*&customer_email=eq.' + encodeURIComponent(customer.email) + '&order=created_at.desc').then(function(quotes) {
+        quotes = (quotes && Array.isArray(quotes)) ? quotes.filter(function(q){ return q.status !== 'paid'; }) : [];
+        if (!orders.length && !quotes.length) { renderNoOrders(customer); return; }
+        if (!orders.length) {
+          _ordersCache = [];
+          _customerEmail = customer.email;
+          render(customer, [], quotes);
+          return;
+        }
+        var orderIds = orders.map(function(o){ return o.shopify_order_id; });
+        var orderIdFilter = 'shopify_order_id=in.(' + orderIds.join(',') + ')';
+        Promise.all([
+          sq('files', 'select=*&' + orderIdFilter + '&order=created_at.asc'),
+          sq('file_versions', 'select=*&order=version.asc'),
+          sq('edit_requests', 'select=*&order=created_at.asc')
+        ]).then(function(res) {
+          var files = res[0]||[], versions = res[1]||[], requests = res[2]||[];
+          files = files.map(function(f) {
+            f.all_versions  = versions.filter(function(v){ return v.file_id === f.id; });
+            f.edit_requests = requests.filter(function(r){ return r.file_id === f.id; });
+            if (f.all_versions.length) {
+              var maxV = Math.max.apply(null, f.all_versions.map(function(v){ return v.version; }));
+              f.latest_version = maxV;
+              f.current_files = f.all_versions.filter(function(v){ return v.version === maxV; });
+            } else {
+              f.latest_version = f.version || 1;
+              f.current_files = [{
+                id: 'base-' + f.id,
+                version: f.version || 1,
+                download_url: f.download_url,
+                preview_url: f.preview_url,
+                uploaded_at: f.created_at
+              }];
+            }
+            return f;
+          });
+          orders = orders.map(function(o){
+            o.files = files.filter(function(f){ return String(f.shopify_order_id) === String(o.shopify_order_id); });
+            return o;
+          });
+          _ordersCache = orders;
+          _customerEmail = customer.email;
+          render(customer, orders, quotes);
         });
-        orders = orders.map(function(o){
-          o.files = files.filter(function(f){ return String(f.shopify_order_id) === String(o.shopify_order_id); });
-          return o;
-        });
-        _ordersCache = orders;
+      }).catch(function(){
+        _ordersCache = [];
         _customerEmail = customer.email;
-        render(customer, orders);
+        render(customer, orders, []);
       });
     });
   }).catch(showNotFound);
 
-  function render(customer, orders) {
+  function render(customer, orders, quotes) {
+    quotes = quotes || [];
     var html = '<div class="customer-header"><div><div class="customer-eyebrow">Welcome back</div>';
     html += '<div class="customer-title">' + (customer.name || customer.email) + '</div>';
     html += '<div class="customer-meta"><span>' + orders.length + ' order' + (orders.length!==1?'s':'') + '</span></div></div>';
     html += '<a href="https://printergrowth.com/pages/artwork-services" class="btn-order-more" target="_blank">+ Order More Artwork</a></div>';
-    html += '<div id="orders-list"></div>';
+    var quoteBadge = quotes.length ? '<span class="tab-badge">' + quotes.length + '</span>' : '';
+    html += '<div class="tabs">';
+    html += '<button class="tab-btn active" id="tab-btn-orders" onclick="window.switchTab(\'orders\')">Orders</button>';
+    html += '<button class="tab-btn" id="tab-btn-quotes" onclick="window.switchTab(\'quotes\')">Quotes' + quoteBadge + '</button>';
+    html += '</div>';
+    html += '<div id="tab-orders"><div id="orders-list"></div></div>';
+    html += '<div id="tab-quotes" style="display:none"><div id="quotes-list"></div></div>';
     document.getElementById('app-root').innerHTML = html;
     var list = document.getElementById('orders-list');
     orders.forEach(function(o,i){
       list.appendChild(buildOrderCard(o));
       if (i === 0) setTimeout(function(){ toggleOrder(o.shopify_order_id); }, 10);
     });
+    if (!orders.length) {
+      list.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No orders yet</h1><p>Once you place an order it\'ll show up here.</p></div>';
+    }
+    var qlist = document.getElementById('quotes-list');
+    if (quotes.length) {
+      quotes.forEach(function(q){ qlist.appendChild(buildQuoteCard(q)); });
+    } else {
+      qlist.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No quotes yet</h1><p>When you request a vector quote it will appear here.</p></div>';
+    }
+  }
+
+  window.switchTab = function(tab) {
+    document.getElementById('tab-orders').style.display = tab === 'orders' ? '' : 'none';
+    document.getElementById('tab-quotes').style.display = tab === 'quotes' ? '' : 'none';
+    document.getElementById('tab-btn-orders').className = 'tab-btn' + (tab === 'orders' ? ' active' : '');
+    document.getElementById('tab-btn-quotes').className = 'tab-btn' + (tab === 'quotes' ? ' active' : '');
+  };
+
+  function buildQuoteCard(q) {
+    var isReady = q.status === 'quote_ready';
+    var date = q.created_at ? new Date(q.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    var card = document.createElement('div');
+    card.className = 'quote-card' + (isReady ? ' quote-ready' : '');
+    var thumbHtml = q.preview_url
+      ? '<img src="' + q.preview_url + '" alt="preview">'
+      : '<div class="quote-thumb-ph">&#128444;</div>';
+    var badgeHtml = isReady
+      ? '<span class="quote-badge quote-badge-ready"><span class="pulse" style="width:6px;height:6px;background:#00aeef;display:inline-block;border-radius:50%;margin-right:4px;vertical-align:middle;"></span>QUOTE READY</span>'
+      : '<span class="quote-badge quote-badge-pending">&#9203; WAITING FOR QUOTE</span>';
+    var actionHtml = (isReady && q.payment_link)
+      ? '<div class="quote-actions"><a href="' + q.payment_link + '" class="btn-pay" target="_blank">View &amp; Pay Invoice &rarr;</a></div>'
+      : '';
+    card.innerHTML =
+      '<div class="quote-thumb">' + thumbHtml + '</div>' +
+      '<div class="quote-info">' +
+        '<div class="quote-eyebrow">Vector Quote' + (q.quote_number ? ' #' + q.quote_number : '') + '</div>' +
+        '<div class="quote-title">Vector Art Request</div>' +
+        '<div class="quote-meta">' + date + '</div>' +
+        '<div class="quote-status">' + badgeHtml + '</div>' +
+      '</div>' +
+      actionHtml;
+    return card;
   }
 
   function buildOrderCard(order) {
@@ -321,7 +404,6 @@
     card.dataset.file  = JSON.stringify(f);
     card.dataset.label = label;
     card.dataset.ce    = ce||'';
-    // Store file_id safely on the element to avoid HTML attribute string corruption
     card.dataset.fid   = f.id;
 
     var filesListHtml = '<div class="files-list">';
@@ -354,7 +436,6 @@
     return card;
   }
 
-  // Safe version: reads subtaskId, label, ce from card dataset to avoid HTML attribute string corruption
   window.openEditFromCard = function(fid) {
     var card = document.getElementById('card-' + fid);
     var subtaskId = JSON.parse(card.dataset.file).clickup_subtask_id || '';
@@ -433,17 +514,12 @@
   };
 
   window.cancelEdit = function(fid) {
-    var card = document.getElementById('card-' + fid);
-    var subtaskId = JSON.parse(card.dataset.file).clickup_subtask_id || '';
-    var label = card.dataset.label;
-    var ce = card.dataset.ce;
     delete _attachments[fid];
     document.getElementById('act-' + fid).innerHTML =
       '<button class="btn btn-edit" onclick="openEditFromCard(\'' + fid + '\')">&#9999; Request Edit</button>';
   };
 
   window.sendEdit = function(fid) {
-    // Read all data safely from card dataset — no HTML attribute string corruption possible
     var card = document.getElementById('card-' + fid);
     var f = JSON.parse(card.dataset.file);
     var subtaskId = f.clickup_subtask_id || '';
@@ -460,7 +536,6 @@
 
     var attachmentsPayload = ax.map(function(a){ return {name: a.name, url: a.url}; });
 
-    // 1. Insert directly into Supabase — file_id read from JS variable, never from HTML string
     var supabaseInsert = fetch(SUPABASE_URL + '/rest/v1/edit_requests', {
       method: 'POST',
       headers: {
@@ -477,7 +552,6 @@
       })
     });
 
-    // 2. Notify Zapier for ClickUp comment + task status update only
     var zapierNotify = fetch(EDIT_ENDPOINT, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
