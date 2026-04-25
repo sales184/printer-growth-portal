@@ -284,9 +284,29 @@
     html += '<button class="tab-btn active" id="tab-btn-orders" onclick="window.switchTab(\'orders\')">Orders</button>';
     html += '<button class="tab-btn" id="tab-btn-quotes" onclick="window.switchTab(\'quotes\')">Quotes' + quoteBadge + '</button>';
     html += '</div>';
-    html += '<div id="tab-orders"><div id="orders-list"></div></div>';
+    html += '<div id="tab-orders"><div id="quote-banner-area"></div><div id="orders-list"></div></div>';
     html += '<div id="tab-quotes" style="display:none"><div id="quotes-list"></div></div>';
     document.getElementById('app-root').innerHTML = html;
+
+    // Group quotes by quote_number, sorted newest first
+    var quoteGroups = {};
+    var quoteGroupOrder = [];
+    quotes.forEach(function(q) {
+      var key = q.quote_number || q.id;
+      if (!quoteGroups[key]) { quoteGroups[key] = []; quoteGroupOrder.push(key); }
+      quoteGroups[key].push(q);
+    });
+    quoteGroupOrder.sort(function(a, b) { return Number(b) - Number(a); });
+
+    // Show most recent quote as banner in Orders tab
+    var bannerArea = document.getElementById('quote-banner-area');
+    if (quoteGroupOrder.length) {
+      var bannerCard = buildQuoteGroupCard(quoteGroups[quoteGroupOrder[0]], true);
+      bannerArea.appendChild(bannerCard);
+      // Auto-expand the banner
+      setTimeout(function(){ window.toggleQuote(quoteGroupOrder[0]); }, 10);
+    }
+
     var list = document.getElementById('orders-list');
     orders.forEach(function(o,i){
       list.appendChild(buildOrderCard(o));
@@ -295,17 +315,14 @@
     if (!orders.length) {
       list.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No orders yet</h1><p>Once you place an order it\'ll show up here.</p></div>';
     }
+
     var qlist = document.getElementById('quotes-list');
-    if (quotes.length) {
-      // Group quotes by quote_number
-      var quoteGroups = {};
-      quotes.forEach(function(q) {
-        var key = q.quote_number || q.id;
-        if (!quoteGroups[key]) quoteGroups[key] = [];
-        quoteGroups[key].push(q);
-      });
-      Object.keys(quoteGroups).forEach(function(key) {
-        qlist.appendChild(buildQuoteGroupCard(quoteGroups[key]));
+    if (quoteGroupOrder.length) {
+      quoteGroupOrder.forEach(function(key, i) {
+        var qcard = buildQuoteGroupCard(quoteGroups[key], false);
+        qlist.appendChild(qcard);
+        // Auto-expand most recent quote
+        if (i === 0) setTimeout(function(){ window.toggleQuote(key); }, 10);
       });
     } else {
       qlist.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No quotes yet</h1><p>When you request a vector quote it will appear here.</p></div>';
