@@ -274,7 +274,11 @@
     html += '<div class="customer-title">' + (customer.name || customer.email) + '</div>';
     html += '<div class="customer-meta"><span>' + orders.length + ' order' + (orders.length!==1?'s':'') + '</span></div></div>';
     html += '<a href="https://printergrowth.com/pages/artwork-services" class="btn-order-more" target="_blank">+ Order More Artwork</a></div>';
-    var quoteBadge = quotes.length ? '<span class="tab-badge">' + quotes.length + '</span>' : '';
+    // Count unique quote groups for badge
+    var uniqueQuoteNumbers = {};
+    quotes.forEach(function(q){ uniqueQuoteNumbers[q.quote_number || q.id] = true; });
+    var quoteGroupCount = Object.keys(uniqueQuoteNumbers).length;
+    var quoteBadge = quoteGroupCount ? '<span class="tab-badge">' + quoteGroupCount + '</span>' : '';
     html += '<div class="tabs">';
     html += '<button class="tab-btn active" id="tab-btn-orders" onclick="window.switchTab(\'orders\')">Orders</button>';
     html += '<button class="tab-btn" id="tab-btn-quotes" onclick="window.switchTab(\'quotes\')">Quotes' + quoteBadge + '</button>';
@@ -292,7 +296,16 @@
     }
     var qlist = document.getElementById('quotes-list');
     if (quotes.length) {
-      quotes.forEach(function(q){ qlist.appendChild(buildQuoteCard(q)); });
+      // Group quotes by quote_number
+      var quoteGroups = {};
+      quotes.forEach(function(q) {
+        var key = q.quote_number || q.id;
+        if (!quoteGroups[key]) quoteGroups[key] = [];
+        quoteGroups[key].push(q);
+      });
+      Object.keys(quoteGroups).forEach(function(key) {
+        qlist.appendChild(buildQuoteGroupCard(quoteGroups[key]));
+      });
     } else {
       qlist.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No quotes yet</h1><p>When you request a vector quote it will appear here.</p></div>';
     }
@@ -305,30 +318,50 @@
     document.getElementById('tab-btn-quotes').className = 'tab-btn' + (tab === 'quotes' ? ' active' : '');
   };
 
-  function buildQuoteCard(q) {
-    var isReady = q.status === 'quote_ready';
-    var date = q.created_at ? new Date(q.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  function buildQuoteGroupCard(group) {
+    // group is array of quote rows with same quote_number
+    var first = group[0];
+    var isReady = group.some(function(q){ return q.status === 'quote_ready'; });
+    var date = first.created_at ? new Date(first.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     var card = document.createElement('div');
     card.className = 'quote-card' + (isReady ? ' quote-ready' : '');
-    var thumbHtml = q.preview_url
-      ? '<img src="' + q.preview_url + '" alt="preview">'
-      : '<div class="quote-thumb-ph">&#128444;</div>';
+
     var badgeHtml = isReady
       ? '<span class="quote-badge quote-badge-ready"><span class="pulse" style="width:6px;height:6px;background:#00aeef;display:inline-block;border-radius:50%;margin-right:4px;vertical-align:middle;"></span>QUOTE READY</span>'
       : '<span class="quote-badge quote-badge-pending">&#9203; WAITING FOR QUOTE</span>';
-    var actionHtml = (isReady && q.payment_link)
-      ? '<div class="quote-actions"><a href="' + q.payment_link + '" class="btn-pay" target="_blank">View &amp; Pay Invoice &rarr;</a></div>'
+
+    var paymentLink = '';
+    group.forEach(function(q){ if (q.payment_link) paymentLink = q.payment_link; });
+
+    var actionHtml = (isReady && paymentLink)
+      ? '<div class="quote-actions"><a href="' + paymentLink + '" class="btn-pay" target="_blank">View &amp; Pay Invoice &rarr;</a></div>'
       : '';
+
+    // Build thumbnails row
+    var thumbsHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">';
+    group.forEach(function(q, i) {
+      thumbsHtml += '<div class="quote-thumb" style="width:64px;height:64px;">';
+      thumbsHtml += q.preview_url
+        ? '<img src="' + q.preview_url + '" alt="Design ' + (i+1) + '">'
+        : '<div class="quote-thumb-ph">&#128444;</div>';
+      thumbsHtml += '</div>';
+    });
+    thumbsHtml += '</div>';
+
     card.innerHTML =
-      '<div class="quote-thumb">' + thumbHtml + '</div>' +
-      '<div class="quote-info">' +
-        '<div class="quote-eyebrow">Vector Quote' + (q.quote_number ? ' #' + q.quote_number : '') + '</div>' +
+      '<div class="quote-info" style="flex:1">' +
+        '<div class="quote-eyebrow">Vector Quote' + (first.quote_number ? ' #' + first.quote_number : '') + '</div>' +
         '<div class="quote-title">Vector Art Request</div>' +
-        '<div class="quote-meta">' + date + '</div>' +
-        '<div class="quote-status">' + badgeHtml + '</div>' +
+        '<div class="quote-meta">' + date + ' &middot; ' + group.length + ' design' + (group.length !== 1 ? 's' : '') + '</div>' +
+        thumbsHtml +
+        '<div class="quote-status" style="margin-top:10px;">' + badgeHtml + '</div>' +
       '</div>' +
       actionHtml;
     return card;
+  }
+
+  function buildQuoteCard(q) {
+    return buildQuoteGroupCard([q]);
   }
 
   function buildOrderCard(order) {
