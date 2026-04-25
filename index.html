@@ -353,41 +353,33 @@
     var isReady = group.some(function(q){ return q.status === 'quote_ready'; });
     var date = first.created_at ? new Date(first.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     var quoteNum = first.quote_number || first.id;
-    var card = document.createElement('div');
-    card.className = 'quote-card' + (isReady ? ' quote-ready' : '') + (isBanner ? ' quote-banner' : '');
-    card.setAttribute('data-quote-number', quoteNum);
-    card.dataset.expanded = 'false';
-
-    var badgeHtml = isReady
-      ? '<span class="quote-badge quote-badge-ready"><span class="pulse" style="width:6px;height:6px;background:#00aeef;display:inline-block;border-radius:50%;margin-right:4px;vertical-align:middle;"></span>QUOTE READY</span>'
-      : '<span class="quote-badge quote-badge-pending">&#9203; WAITING FOR QUOTE</span>';
-
     var paymentLink = '';
     group.forEach(function(q){ if (q.payment_link) paymentLink = q.payment_link; });
 
-    var topRightHtml = '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">';
-    if (isReady && paymentLink) {
-      topRightHtml += '<a href="' + paymentLink + '" class="btn-pay" target="_blank">View &amp; Pay Invoice &rarr;</a>';
-    }
-    if (!isBanner) {
-      topRightHtml += '<button onclick="window.deleteQuote(this.dataset.qnum)" data-qnum="' + quoteNum + '" style="background:none;border:none;cursor:pointer;color:#c4b89a;font-size:20px;line-height:1;padding:4px 8px;border-radius:6px;" title="Delete quote">&#10005;</button>';
-    }
-    topRightHtml += '</div>';
+    var card = document.createElement('div');
+    card.className = 'order-card' + (isReady ? ' inprogress' : '');
+    card.setAttribute('data-quote-number', quoteNum);
+    card.dataset.expanded = 'false';
 
-    // Collapsed thumbnails row — clickable to expand
-    var thumbsHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;cursor:pointer;" onclick="window.toggleQuote(this.dataset.qnum)" data-qnum="' + quoteNum + '">';
-    group.forEach(function(q, i) {
-      thumbsHtml += '<div class="quote-thumb" style="width:64px;height:64px;" title="Click to expand">';
-      thumbsHtml += q.preview_url
-        ? '<img src="' + q.preview_url + '" alt="Design ' + (i+1) + '">'
-        : '<div class="quote-thumb-ph">&#128444;</div>';
-      thumbsHtml += '</div>';
-    });
-    thumbsHtml += '<div style="display:flex;align-items:center;padding:0 8px;color:#a89880;font-size:12px;">&#9662; expand</div>';
-    thumbsHtml += '</div>';
+    var statusText = isReady ? 'Quote ready' : 'Waiting for quote';
+    var deleteBtn = !isBanner ? '<button onclick="window.deleteQuote(this.dataset.qnum)" data-qnum="' + quoteNum + '" style="background:none;border:none;cursor:pointer;color:#c4b89a;font-size:18px;padding:0 4px;" title="Delete quote" onclick="event.stopPropagation()">&#10005;</button>' : '';
 
-    // Expanded detail area
-    var detailHtml = '<div id="quote-detail-' + quoteNum + '" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid #f0ece4;">';
+    // Header row — clickable to expand
+    var headerHtml =
+      '<div class="order-row" onclick="window.toggleQuote(\'' + quoteNum + '\')">' +
+        '<div class="order-info">' +
+          '<div class="order-num">Vector Quote' + (first.quote_number ? ' #' + first.quote_number : '') + (isBanner ? ' <span style="font-size:11px;color:#00aeef;font-family:monospace;font-weight:700;letter-spacing:1px;">ACTIVE</span>' : '') + '</div>' +
+          '<div class="order-sub">' + date + ' &middot; ' + group.length + ' design' + (group.length !== 1 ? 's' : '') + ' &middot; ' + statusText + '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          (isReady && paymentLink ? '<a href="' + paymentLink + '" class="btn-pay" target="_blank" onclick="event.stopPropagation()">View &amp; Pay Invoice &rarr;</a>' : '') +
+          deleteBtn +
+          '<div class="order-chev">&#9662;</div>' +
+        '</div>' +
+      '</div>';
+
+    // Detail area
+    var detailHtml = '<div class="order-detail" id="quote-detail-' + quoteNum + '" style="display:none;">';
     detailHtml += '<div class="grid">';
     group.forEach(function(q, i) {
       var fid = q.id;
@@ -410,23 +402,11 @@
       if (subtaskId) {
         detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid)" data-fid="' + fid + '">&#9999; Request Edit</button>';
       }
-      detailHtml += '</div>';
-      detailHtml += '</div>';
+      detailHtml += '</div></div>';
     });
     detailHtml += '</div></div>';
 
-    card.innerHTML =
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">' +
-        '<div class="quote-info" style="flex:1;min-width:200px;">' +
-          '<div class="quote-eyebrow">' + (isBanner ? 'Active Quote &mdash; ' : '') + 'Vector Quote' + (first.quote_number ? ' #' + first.quote_number : '') + '</div>' +
-          '<div class="quote-title">Vector Art Request</div>' +
-          '<div class="quote-meta">' + date + ' &middot; ' + group.length + ' design' + (group.length !== 1 ? 's' : '') + '</div>' +
-          '<div class="quote-status" style="margin-top:8px;">' + badgeHtml + '</div>' +
-        '</div>' +
-        topRightHtml +
-      '</div>' +
-      thumbsHtml +
-      detailHtml;
+    card.innerHTML = headerHtml + detailHtml;
     return card;
   }
 
