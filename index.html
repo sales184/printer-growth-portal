@@ -375,7 +375,7 @@
     topRightHtml += '</div>';
 
     // Collapsed thumbnails row — clickable to expand
-    var thumbsHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;cursor:pointer;" onclick="window.toggleQuote('' + quoteNum + '')">';
+    var thumbsHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;cursor:pointer;" onclick="window.toggleQuote(this.dataset.qnum)" data-qnum="' + quoteNum + '">';
     group.forEach(function(q, i) {
       thumbsHtml += '<div class="quote-thumb" style="width:64px;height:64px;" title="Click to expand">';
       thumbsHtml += q.preview_url
@@ -397,8 +397,8 @@
       detailHtml += '<div class="files-list">';
       if (q.preview_url) {
         detailHtml += '<div class="file-row">';
-        detailHtml += '<div class="file-thumb" onclick="viewImg('' + q.preview_url + '','Design ' + (i+1) + '')">';
-        detailHtml += '<img src="' + q.preview_url + '" onerror="this.parentElement.innerHTML='<div class=file-thumb-ph>&#128444;</div>'">';
+        detailHtml += '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + q.preview_url + '" data-lbl="Design ' + (i+1) + '">';
+        detailHtml += '<img src="' + q.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">';
         detailHtml += '</div>';
         detailHtml += '<div class="file-info"><div class="file-label">Original upload</div><div class="file-meta">Submitted file</div></div>';
         detailHtml += '<a href="' + q.preview_url + '" class="file-dl" download>&#11015; Download</a>';
@@ -408,7 +408,7 @@
       detailHtml += '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">ORIGINAL DESIGN</div><div class="waiting-text">This is your uploaded file. Awaiting quote from our team.</div></div></div>';
       detailHtml += '<div class="actions" id="qact-' + fid + '">';
       if (subtaskId) {
-        detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit('' + fid + '')">&#9999; Request Edit</button>';
+        detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid)" data-fid="' + fid + '">&#9999; Request Edit</button>';
       }
       detailHtml += '</div>';
       detailHtml += '</div>';
@@ -444,19 +444,38 @@
     var label = card.dataset.label || 'Design';
     var ce = card.dataset.email || _customerEmail || '';
     _attachments[fid] = [];
-    document.getElementById('qact-' + fid).innerHTML =
-      '<textarea id="qnote-' + fid + '" placeholder="Describe what needs to change on ' + label + '..."></textarea>' +
-      '<input type="file" id="qfileinput-' + fid + '" multiple style="display:none" onchange="handleAttach('' + fid + '')">' +
-      '<button class="btn-attach" onclick="document.getElementById('qfileinput-' + fid + '').click()">&#128206; Attach files (optional)</button>' +
-      '<div class="attachments-list" id="ax-list-' + fid + '"></div>' +
-      '<div class="btn-row"><button class="btn btn-cancel" style="flex:1" onclick="cancelQuoteEdit('' + fid + '','' + subtaskId + '')">Cancel</button>' +
-      '<button class="btn btn-send" style="flex:2" onclick="sendQuoteEdit('' + fid + '','' + subtaskId + '','' + label + '','' + ce + '')">Send Request</button></div>';
+    var actEl = document.getElementById('qact-' + fid);
+    var ta = document.createElement('textarea');
+    ta.id = 'qnote-' + fid;
+    ta.placeholder = 'Describe what needs to change on ' + label + '...';
+    var fi = document.createElement('input');
+    fi.type = 'file'; fi.id = 'qfileinput-' + fid; fi.multiple = true; fi.style.display = 'none';
+    fi.onchange = function(){ handleAttach(fid); };
+    var ab = document.createElement('button');
+    ab.className = 'btn-attach';
+    ab.onclick = function(){ fi.click(); };
+    ab.innerHTML = '&#128206; Attach files (optional)';
+    var axList = document.createElement('div');
+    axList.className = 'attachments-list'; axList.id = 'ax-list-' + fid;
+    var btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-cancel'; cancelBtn.style.flex = '1';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = function(){ window.cancelQuoteEdit(fid, subtaskId); };
+    var sendBtn = document.createElement('button');
+    sendBtn.className = 'btn btn-send'; sendBtn.style.flex = '2';
+    sendBtn.textContent = 'Send Request';
+    sendBtn.onclick = function(){ window.sendQuoteEdit(fid, subtaskId, label, ce); };
+    btnRow.appendChild(cancelBtn); btnRow.appendChild(sendBtn);
+    actEl.innerHTML = '';
+    actEl.appendChild(ta); actEl.appendChild(fi); actEl.appendChild(ab); actEl.appendChild(axList); actEl.appendChild(btnRow);
   };
 
   window.cancelQuoteEdit = function(fid, subtaskId) {
     delete _attachments[fid];
     document.getElementById('qact-' + fid).innerHTML =
-      subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit('' + fid + '')">&#9999; Request Edit</button>' : '';
+      subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(\'' + fid + '\')">&#9999; Request Edit</button>' : '';
   };
 
   window.sendQuoteEdit = function(fid, subtaskId, label, ce) {
@@ -480,7 +499,7 @@
     Promise.all([supabaseInsert, zapierNotify]).then(function(results) {
       if (!results[0].ok) throw new Error('Insert failed');
       delete _attachments[fid];
-      document.getElementById('qact-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-edit" onclick="window.openQuoteEdit('' + fid + '')">&#9999; Request Edit</button>';
+      document.getElementById('qact-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-edit" onclick="window.openQuoteEdit(\'' + fid + '\')">&#9999; Request Edit</button>';
     }).catch(function() {
       document.getElementById('qact-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
     });
