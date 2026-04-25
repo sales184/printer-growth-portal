@@ -370,7 +370,7 @@
       topRightHtml += '<a href="' + paymentLink + '" class="btn-pay" target="_blank">View &amp; Pay Invoice &rarr;</a>';
     }
     if (!isBanner) {
-      topRightHtml += '<button onclick="window.deleteQuote('' + quoteNum + '')" style="background:none;border:none;cursor:pointer;color:#c4b89a;font-size:20px;line-height:1;padding:4px 8px;border-radius:6px;" title="Delete quote">&#10005;</button>';
+      topRightHtml += '<button onclick="window.deleteQuote(this.dataset.qnum)" data-qnum="' + quoteNum + '" style="background:none;border:none;cursor:pointer;color:#c4b89a;font-size:20px;line-height:1;padding:4px 8px;border-radius:6px;" title="Delete quote">&#10005;</button>';
     }
     topRightHtml += '</div>';
 
