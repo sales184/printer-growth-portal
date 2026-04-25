@@ -142,6 +142,7 @@
     .quote-actions { display: flex; align-items: center; margin-left: auto; flex-shrink: 0; }
     .btn-pay { background: #00aeef; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
     .btn-pay:hover { background: #0099d4; }
+    .quote-card.quote-banner { background: #f5f0e8; border-color: #e8e2d8; margin-bottom: 24px; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
     .pulse { display: inline-block; border-radius: 50%; animation: pulse 1.5s infinite; }
   </style>
@@ -311,6 +312,35 @@
     }
   }
 
+  window.deleteQuote = function(quoteNumber) {
+    if (!confirm('Are you sure you want to delete this quote?')) return;
+    fetch('https://smmvhozhzeemojqrazbl.supabase.co/rest/v1/quotes?quote_number=eq.' + quoteNumber, {
+      method: 'DELETE',
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us'
+      }
+    }).then(function() {
+      // Remove cards with this quote number
+      document.querySelectorAll('[data-quote-number="' + quoteNumber + '"]').forEach(function(el){ el.remove(); });
+      // Update banner
+      var bannerArea = document.getElementById('quote-banner-area');
+      if (bannerArea) {
+        var remaining = bannerArea.querySelector('[data-quote-number]');
+        if (!remaining) bannerArea.innerHTML = '';
+      }
+      // Update tab badge
+      var remaining = document.querySelectorAll('#quotes-list [data-quote-number]').length;
+      var tabBtn = document.getElementById('tab-btn-quotes');
+      if (tabBtn) tabBtn.innerHTML = 'Quotes' + (remaining ? '<span class="tab-badge">' + remaining + '</span>' : '');
+      // Show empty state if no quotes left
+      var qlist = document.getElementById('quotes-list');
+      if (qlist && !qlist.querySelector('[data-quote-number]')) {
+        qlist.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No quotes yet</h1><p>When you request a vector quote it will appear here.</p></div>';
+      }
+    }).catch(function(){ alert('Could not delete quote. Please try again.'); });
+  };
+
   window.switchTab = function(tab) {
     document.getElementById('tab-orders').style.display = tab === 'orders' ? '' : 'none';
     document.getElementById('tab-quotes').style.display = tab === 'quotes' ? '' : 'none';
@@ -318,13 +348,15 @@
     document.getElementById('tab-btn-quotes').className = 'tab-btn' + (tab === 'quotes' ? ' active' : '');
   };
 
-  function buildQuoteGroupCard(group) {
-    // group is array of quote rows with same quote_number
+  function buildQuoteGroupCard(group, isBanner) {
     var first = group[0];
     var isReady = group.some(function(q){ return q.status === 'quote_ready'; });
     var date = first.created_at ? new Date(first.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    var quoteNum = first.quote_number || first.id;
     var card = document.createElement('div');
-    card.className = 'quote-card' + (isReady ? ' quote-ready' : '');
+    card.className = 'quote-card' + (isReady ? ' quote-ready' : '') + (isBanner ? ' quote-banner' : '');
+    card.setAttribute('data-quote-number', quoteNum);
+    card.dataset.expanded = 'false';
 
     var badgeHtml = isReady
       ? '<span class="quote-badge quote-badge-ready"><span class="pulse" style="width:6px;height:6px;background:#00aeef;display:inline-block;border-radius:50%;margin-right:4px;vertical-align:middle;"></span>QUOTE READY</span>'
@@ -333,35 +365,129 @@
     var paymentLink = '';
     group.forEach(function(q){ if (q.payment_link) paymentLink = q.payment_link; });
 
-    var actionHtml = (isReady && paymentLink)
-      ? '<div class="quote-actions"><a href="' + paymentLink + '" class="btn-pay" target="_blank">View &amp; Pay Invoice &rarr;</a></div>'
-      : '';
+    var topRightHtml = '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">';
+    if (isReady && paymentLink) {
+      topRightHtml += '<a href="' + paymentLink + '" class="btn-pay" target="_blank">View &amp; Pay Invoice &rarr;</a>';
+    }
+    if (!isBanner) {
+      topRightHtml += '<button onclick="window.deleteQuote('' + quoteNum + '')" style="background:none;border:none;cursor:pointer;color:#c4b89a;font-size:20px;line-height:1;padding:4px 8px;border-radius:6px;" title="Delete quote">&#10005;</button>';
+    }
+    topRightHtml += '</div>';
 
-    // Build thumbnails row
-    var thumbsHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">';
+    // Collapsed thumbnails row — clickable to expand
+    var thumbsHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;cursor:pointer;" onclick="window.toggleQuote('' + quoteNum + '')">';
     group.forEach(function(q, i) {
-      thumbsHtml += '<div class="quote-thumb" style="width:64px;height:64px;">';
+      thumbsHtml += '<div class="quote-thumb" style="width:64px;height:64px;" title="Click to expand">';
       thumbsHtml += q.preview_url
         ? '<img src="' + q.preview_url + '" alt="Design ' + (i+1) + '">'
         : '<div class="quote-thumb-ph">&#128444;</div>';
       thumbsHtml += '</div>';
     });
+    thumbsHtml += '<div style="display:flex;align-items:center;padding:0 8px;color:#a89880;font-size:12px;">&#9662; expand</div>';
     thumbsHtml += '</div>';
 
+    // Expanded detail area
+    var detailHtml = '<div id="quote-detail-' + quoteNum + '" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid #f0ece4;">';
+    detailHtml += '<div class="grid">';
+    group.forEach(function(q, i) {
+      var fid = q.id;
+      var subtaskId = q.subtask_id || '';
+      detailHtml += '<div class="card original" id="qcard-' + fid + '" data-fid="' + fid + '" data-subtask="' + subtaskId + '" data-email="' + (q.customer_email||'') + '" data-label="Design ' + (i+1) + '">';
+      detailHtml += '<div class="card-header"><div><div class="design-name">Design ' + (i+1) + '</div><div class="design-service">VECTOR ART</div></div><span class="card-status-badge original">ORIGINAL</span></div>';
+      detailHtml += '<div class="files-list">';
+      if (q.preview_url) {
+        detailHtml += '<div class="file-row">';
+        detailHtml += '<div class="file-thumb" onclick="viewImg('' + q.preview_url + '','Design ' + (i+1) + '')">';
+        detailHtml += '<img src="' + q.preview_url + '" onerror="this.parentElement.innerHTML='<div class=file-thumb-ph>&#128444;</div>'">';
+        detailHtml += '</div>';
+        detailHtml += '<div class="file-info"><div class="file-label">Original upload</div><div class="file-meta">Submitted file</div></div>';
+        detailHtml += '<a href="' + q.preview_url + '" class="file-dl" download>&#11015; Download</a>';
+        detailHtml += '</div>';
+      }
+      detailHtml += '</div>';
+      detailHtml += '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">ORIGINAL DESIGN</div><div class="waiting-text">This is your uploaded file. Awaiting quote from our team.</div></div></div>';
+      detailHtml += '<div class="actions" id="qact-' + fid + '">';
+      if (subtaskId) {
+        detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit('' + fid + '')">&#9999; Request Edit</button>';
+      }
+      detailHtml += '</div>';
+      detailHtml += '</div>';
+    });
+    detailHtml += '</div></div>';
+
     card.innerHTML =
-      '<div class="quote-info" style="flex:1">' +
-        '<div class="quote-eyebrow">Vector Quote' + (first.quote_number ? ' #' + first.quote_number : '') + '</div>' +
-        '<div class="quote-title">Vector Art Request</div>' +
-        '<div class="quote-meta">' + date + ' &middot; ' + group.length + ' design' + (group.length !== 1 ? 's' : '') + '</div>' +
-        thumbsHtml +
-        '<div class="quote-status" style="margin-top:10px;">' + badgeHtml + '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">' +
+        '<div class="quote-info" style="flex:1;min-width:200px;">' +
+          '<div class="quote-eyebrow">' + (isBanner ? 'Active Quote &mdash; ' : '') + 'Vector Quote' + (first.quote_number ? ' #' + first.quote_number : '') + '</div>' +
+          '<div class="quote-title">Vector Art Request</div>' +
+          '<div class="quote-meta">' + date + ' &middot; ' + group.length + ' design' + (group.length !== 1 ? 's' : '') + '</div>' +
+          '<div class="quote-status" style="margin-top:8px;">' + badgeHtml + '</div>' +
+        '</div>' +
+        topRightHtml +
       '</div>' +
-      actionHtml;
+      thumbsHtml +
+      detailHtml;
     return card;
   }
 
+  window.toggleQuote = function(quoteNum) {
+    var detail = document.getElementById('quote-detail-' + quoteNum);
+    if (!detail) return;
+    var isOpen = detail.style.display !== 'none';
+    detail.style.display = isOpen ? 'none' : 'block';
+  };
+
+  window.openQuoteEdit = function(fid) {
+    var card = document.getElementById('qcard-' + fid);
+    if (!card) return;
+    var subtaskId = card.dataset.subtask || '';
+    var label = card.dataset.label || 'Design';
+    var ce = card.dataset.email || _customerEmail || '';
+    _attachments[fid] = [];
+    document.getElementById('qact-' + fid).innerHTML =
+      '<textarea id="qnote-' + fid + '" placeholder="Describe what needs to change on ' + label + '..."></textarea>' +
+      '<input type="file" id="qfileinput-' + fid + '" multiple style="display:none" onchange="handleAttach('' + fid + '')">' +
+      '<button class="btn-attach" onclick="document.getElementById('qfileinput-' + fid + '').click()">&#128206; Attach files (optional)</button>' +
+      '<div class="attachments-list" id="ax-list-' + fid + '"></div>' +
+      '<div class="btn-row"><button class="btn btn-cancel" style="flex:1" onclick="cancelQuoteEdit('' + fid + '','' + subtaskId + '')">Cancel</button>' +
+      '<button class="btn btn-send" style="flex:2" onclick="sendQuoteEdit('' + fid + '','' + subtaskId + '','' + label + '','' + ce + '')">Send Request</button></div>';
+  };
+
+  window.cancelQuoteEdit = function(fid, subtaskId) {
+    delete _attachments[fid];
+    document.getElementById('qact-' + fid).innerHTML =
+      subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit('' + fid + '')">&#9999; Request Edit</button>' : '';
+  };
+
+  window.sendQuoteEdit = function(fid, subtaskId, label, ce) {
+    var note = document.getElementById('qnote-' + fid).value.trim();
+    if (!note) return;
+    var ax = (_attachments[fid] || []).filter(function(a){ return a && a.url; });
+    var stillUploading = (_attachments[fid] || []).some(function(a){ return a && a.uploading; });
+    if (stillUploading) { alert('Please wait for attachments to finish uploading.'); return; }
+    document.getElementById('qact-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
+    var attachmentsPayload = ax.map(function(a){ return {name: a.name, url: a.url}; });
+    var supabaseInsert = fetch('https://smmvhozhzeemojqrazbl.supabase.co/rest/v1/edit_requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ file_id: fid, customer_note: note, status: 'in_progress', attachments: attachmentsPayload })
+    });
+    var zapierNotify = fetch('/api/edit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ clickup_subtask_id: subtaskId, file_name: label, note: note, customer_email: ce, file_id: fid, attachments: attachmentsPayload })
+    });
+    Promise.all([supabaseInsert, zapierNotify]).then(function(results) {
+      if (!results[0].ok) throw new Error('Insert failed');
+      delete _attachments[fid];
+      document.getElementById('qact-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-edit" onclick="window.openQuoteEdit('' + fid + '')">&#9999; Request Edit</button>';
+    }).catch(function() {
+      document.getElementById('qact-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
+    });
+  };
+
   function buildQuoteCard(q) {
-    return buildQuoteGroupCard([q]);
+    return buildQuoteGroupCard([q], false);
   }
 
   function buildOrderCard(order) {
