@@ -303,8 +303,11 @@
     if (quoteGroupOrder.length) {
       var bannerCard = buildQuoteGroupCard(quoteGroups[quoteGroupOrder[0]], true);
       bannerArea.appendChild(bannerCard);
-      // Auto-expand the banner
-      setTimeout(function(){ window.toggleQuote(quoteGroupOrder[0]); }, 10);
+      // Auto-expand banner directly
+      setTimeout(function(){
+        var d = document.getElementById('quote-detail-banner-' + quoteGroupOrder[0]);
+        if (d) d.style.display = 'block';
+      }, 10);
     }
 
     var list = document.getElementById('orders-list');
@@ -321,8 +324,11 @@
       quoteGroupOrder.forEach(function(key, i) {
         var qcard = buildQuoteGroupCard(quoteGroups[key], false);
         qlist.appendChild(qcard);
-        // Auto-expand most recent quote
-        if (i === 0) setTimeout(function(){ window.toggleQuote(key); }, 10);
+        // Auto-expand most recent quote directly
+        if (i === 0) setTimeout(function(){
+          var d = document.getElementById('quote-detail-' + key);
+          if (d) d.style.display = 'block';
+        }, 10);
       });
     } else {
       qlist.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No quotes yet</h1><p>When you request a vector quote it will appear here.</p></div>';
@@ -382,8 +388,9 @@
     var deleteBtn = !isBanner ? '<button onclick="window.deleteQuote(this.dataset.qnum)" data-qnum="' + quoteNum + '" style="background:none;border:none;cursor:pointer;color:#c4b89a;font-size:18px;padding:0 4px;" title="Delete quote" onclick="event.stopPropagation()">&#10005;</button>' : '';
 
     // Header row — clickable to expand
+    var detailId = 'quote-detail-' + (isBanner ? 'banner-' : '') + quoteNum;
     var headerHtml =
-      '<div class="order-row" onclick="window.toggleQuote(\'' + quoteNum + '\')">' +
+      '<div class="order-row" onclick="window.toggleQuoteById(\'' + detailId + '\')">' +
         '<div class="order-info">' +
           '<div class="order-num">Vector Quote' + (first.quote_number ? ' #' + first.quote_number : '') + (isBanner ? ' <span style="font-size:11px;color:#00aeef;font-family:monospace;font-weight:700;letter-spacing:1px;">ACTIVE</span>' : '') + '</div>' +
           '<div class="order-sub">' + date + ' &middot; ' + group.length + ' design' + (group.length !== 1 ? 's' : '') + ' &middot; ' + statusText + '</div>' +
@@ -395,8 +402,9 @@
         '</div>' +
       '</div>';
 
+    var detailId = 'quote-detail-' + (isBanner ? 'banner-' : '') + quoteNum;
     // Detail area
-    var detailHtml = '<div class="order-detail" id="quote-detail-' + quoteNum + '" style="display:none;">';
+    var detailHtml = '<div class="order-detail" id="' + detailId + '" style="display:none;">';
     detailHtml += '<div class="grid">';
     group.forEach(function(q, i) {
       var fid = q.id;
@@ -427,11 +435,14 @@
     return card;
   }
 
-  window.toggleQuote = function(quoteNum) {
-    var detail = document.getElementById('quote-detail-' + quoteNum);
+  window.toggleQuoteById = function(detailId) {
+    var detail = document.getElementById(detailId);
     if (!detail) return;
-    var isOpen = detail.style.display !== 'none';
-    detail.style.display = isOpen ? 'none' : 'block';
+    detail.style.display = detail.style.display !== 'none' ? 'none' : 'block';
+  };
+
+  window.toggleQuote = function(quoteNum) {
+    window.toggleQuoteById('quote-detail-' + quoteNum);
   };
 
   window.openQuoteEdit = function(fid) {
