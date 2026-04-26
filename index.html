@@ -481,7 +481,7 @@
           versionGroups[v.version].push(v);
         });
 
-        // Always show v1 as original upload with previewSrc
+        // Always ensure v1 exists with original preview
         if (!versionGroups[1]) {
           versionGroups[1] = [{
             version: 1,
@@ -489,6 +489,9 @@
             preview_url: previewSrc,
             uploaded_at: fileRow ? fileRow.created_at : null
           }];
+        } else {
+          // Override v1 preview with original for vector art
+          versionGroups[1].forEach(function(v){ if (!v.preview_url) v.preview_url = previewSrc; v.thumbSrc = previewSrc; });
         }
 
         var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
@@ -999,9 +1002,11 @@
           '<div class="vgroup-files">';
         filesAtV.forEach(function(v,i){
           var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
-          var thumb = v.preview_url ? '<img src="' + v.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+          var isVecFile = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+          var thumbSrc = isVecFile ? (f.preview_url || v.preview_url || '') : (v.preview_url || '');
+          var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
           bodyHtml += '<div class="file-row">' +
-            '<div class="file-thumb" onclick="viewImg(\'' + (v.preview_url||'') + '\',\'' + label + ' v' + vn + ' ' + fileLabel + '\')">' + thumb + '</div>' +
+            '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' v' + vn + ' ' + fileLabel + '">' + thumb + '</div>' +
             '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
             '<a href="' + (v.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
           '</div>';
