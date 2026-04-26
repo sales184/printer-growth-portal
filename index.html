@@ -426,7 +426,7 @@
         detailHtml += '</div>';
       }
       detailHtml += '</div>';
-      detailHtml += '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">ORIGINAL DESIGN</div><div class="waiting-text">This is your uploaded file. Awaiting quote from our team.</div></div></div>';
+      detailHtml += '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">AWAITING QUOTE</div><div class="waiting-text">This is your uploaded file. We\'ll send you an invoice when your quote is ready.</div></div></div>';
       detailHtml += '<div class="actions" id="qact-' + fid + '">';
       detailHtml += '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>';
       if (subtaskId) {
@@ -441,61 +441,114 @@
   }
 
   window.openQuoteHistory = function(fid) {
-    // Fetch edit requests for this quote design
-    fetch('https://smmvhozhzeemojqrazbl.supabase.co/rest/v1/edit_requests?file_id=eq.' + fid + '&order=created_at.asc', {
-      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
-    }).then(function(r){ return r.json(); }).then(function(requests) {
-      requests = requests || [];
+    // First find the real file_id from the files table using clickup_subtask_id or fid
+    // fid could be a quote row UUID or a files table UUID
+    Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/file_versions?file_id=eq.' + fid + '&order=version.asc', {
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+      }).then(function(r){ return r.json(); }),
+      fetch(SUPABASE_URL + '/rest/v1/edit_requests?file_id=eq.' + fid + '&order=created_at.asc', {
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+      }).then(function(r){ return r.json(); }),
+      fetch(SUPABASE_URL + '/rest/v1/files?id=eq.' + fid + '&limit=1', {
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+      }).then(function(r){ return r.json(); })
+    ]).then(function(res) {
+      var versions = res[0] || [];
+      var requests = res[1] || [];
+      var fileRow = (res[2] && res[2][0]) ? res[2][0] : null;
+
       var card = document.getElementById('qcard-' + fid);
       var label = card ? (card.dataset.label || 'Design') : 'Design';
-      var previewUrl = card ? card.querySelector('.file-thumb img') : null;
-      var previewSrc = previewUrl ? previewUrl.src : '';
+      var previewSrc = fileRow ? (fileRow.preview_url || '') : (card ? (card.querySelector('.file-thumb img') ? card.querySelector('.file-thumb img').src : '') : '');
 
-      var bodyHtml = '<div class="vgroup">';
-      bodyHtml += '<div class="vgroup-head">';
-      bodyHtml += '<div class="vgroup-num current">v1</div>';
-      bodyHtml += '<div class="vgroup-label">Version 1<span class="vgroup-cur-badge">CURRENT</span></div>';
-      bodyHtml += '</div>';
-      bodyHtml += '<div class="vgroup-files">';
-      if (previewSrc) {
-        bodyHtml += '<div class="file-row">';
-        bodyHtml += '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + previewSrc + '" data-lbl="' + label + '">';
-        bodyHtml += '<img src="' + previewSrc + '">';
-        bodyHtml += '</div>';
-        bodyHtml += '<div class="file-info"><div class="file-label">Original upload</div><div class="file-meta">Version 1</div></div>';
-        bodyHtml += '<a href="' + previewSrc + '" class="file-dl" download>&#11015; Download</a>';
-        bodyHtml += '</div>';
+      // Build timeline same as openHistory
+      var versionGroups = {};
+      versions.forEach(function(v){
+        if (!versionGroups[v.version]) versionGroups[v.version] = [];
+        versionGroups[v.version].push(v);
+      });
+
+      // If no versions in file_versions table, use the original file as v1
+      if (!versions.length && previewSrc) {
+        versionGroups[1] = [{
+          version: 1,
+          download_url: previewSrc,
+          preview_url: previewSrc,
+          uploaded_at: fileRow ? fileRow.created_at : null
+        }];
       }
-      bodyHtml += '</div></div>';
 
-      requests.forEach(function(r) {
-        var ip = r.status === 'in_progress';
-        var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-        var atts = r.attachments;
-        if (typeof atts === 'string') { try { atts = JSON.parse(atts); } catch(e){ atts = []; } }
-        var axHtml = '';
-        if (atts && atts.length) {
-          axHtml = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">' +
-            atts.map(function(a){
-              return '<a href="' + a.url + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border:1px solid #e8e2d8;border-radius:6px;font-size:11px;color:#3d3020;text-decoration:none;">' +
-                '<span style="color:#00aeef;">&#128206;</span>' +
-                '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.name || 'attachment') + '</span>' +
-                '<span style="color:#00aeef;font-weight:600;">View</span>' +
-              '</a>';
-            }).join('') + '</div>';
+      var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
+      var latestVersion = versionNums.length ? Math.max.apply(null, versionNums) : 1;
+
+      var timeline = [];
+      versionNums.forEach(function(vn){
+        var filesAtV = versionGroups[vn];
+        var ts = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).getTime() : 0;
+        timeline.push({ type: 'version', vn: vn, filesAtV: filesAtV, ts: ts });
+      });
+      requests.forEach(function(r){
+        var ts = r.created_at ? new Date(r.created_at).getTime() : 0;
+        timeline.push({ type: 'request', data: r, ts: ts });
+      });
+      timeline.sort(function(a,b){ return a.ts - b.ts; });
+
+      var bodyHtml = '';
+      timeline.forEach(function(item){
+        if (item.type === 'version') {
+          var vn = item.vn;
+          var filesAtV = item.filesAtV;
+          var isCur = vn === latestVersion;
+          var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+          bodyHtml += '<div class="vgroup">' +
+            '<div class="vgroup-head">' +
+              '<div class="vgroup-num ' + (isCur?'current':'old') + '">v' + vn + '</div>' +
+              '<div class="vgroup-label">Version ' + vn + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
+              '<div class="vgroup-date">' + date + '</div>' +
+            '</div>' +
+            '<div class="vgroup-files">';
+          filesAtV.forEach(function(v, i){
+            var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
+            var thumbSrc = vn === 1 ? previewSrc : (v.preview_url || previewSrc);
+            var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+            bodyHtml += '<div class="file-row">' +
+              '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + (thumbSrc||'') + '" data-lbl="' + label + ' v' + vn + '">' + thumb + '</div>' +
+              '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
+              '<a href="' + (v.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
+            '</div>';
+          });
+          bodyHtml += '</div></div>';
+        } else {
+          var r = item.data;
+          var ip = r.status === 'in_progress';
+          var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+          var atts = r.attachments;
+          if (typeof atts === 'string') { try { atts = JSON.parse(atts); } catch(e){ atts = []; } }
+          var axHtml = '';
+          if (atts && atts.length) {
+            axHtml = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">' +
+              atts.map(function(a){
+                return '<a href="' + a.url + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border:1px solid #e8e2d8;border-radius:6px;font-size:11px;color:#3d3020;text-decoration:none;">' +
+                  '<span style="color:#00aeef;">&#128206;</span>' +
+                  '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.name || 'attachment') + '</span>' +
+                  '<span style="color:#00aeef;font-weight:600;">View</span>' +
+                '</a>';
+              }).join('') + '</div>';
+          }
+          bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
+            '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
+            (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
+            '</div><span class="req-date">' + rDate + '</span></div>' +
+            '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
+            axHtml + '</div>';
         }
-        bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
-          '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
-          (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
-          '</div><span class="req-date">' + rDate + '</span></div>' +
-          '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
-          axHtml + '</div>';
       });
 
       document.getElementById('drawer-root').innerHTML =
         '<div class="overlay" onclick="closeDrawer()"><div class="drawer" onclick="event.stopPropagation()">' +
         '<div class="drawer-head"><div><div class="drawer-title">' + label + ' &mdash; History</div>' +
-        '<div class="drawer-sub">1 version &middot; ' + requests.length + ' request' + (requests.length!==1?'s':'') + '</div></div>' +
+        '<div class="drawer-sub">' + versionNums.length + ' version' + (versionNums.length!==1?'s':'') + ' &middot; ' + requests.length + ' request' + (requests.length!==1?'s':'') + '</div></div>' +
         '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
         '<div class="drawer-body">' + bodyHtml + '</div></div></div>';
       setTimeout(function(){
@@ -689,8 +742,37 @@
     });
     filesListHtml += '</div>';
 
-    var notice = (inProg && !isVectorArt) ? '<div class="progress-notice"><span style="font-size:14px;flex-shrink:0">&#9203;</span><div><div class="progress-label">REVISION IN PROGRESS</div><div class="progress-text">Your edit request is being worked on. We\'ll email you when finished.</div></div></div>'
-                : isAwaiting ? '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">ORIGINAL DESIGN</div><div class="waiting-text">This is your uploaded file. Our team is preparing the final artwork.</div></div></div>' : '';
+    var noticeText = '';
+    var noticeLabel = '';
+    var noticeClass = 'waiting-notice';
+    if (isVectorArt) {
+      if (isDelivered && f.latest_version > 1) {
+        noticeClass = 'progress-notice';
+        noticeLabel = 'ARTWORK READY';
+        noticeText = 'Here is your finished artwork.';
+      } else if (inProg || (isAwaiting && f.revision_status === 'in_progress')) {
+        noticeClass = 'waiting-notice';
+        noticeLabel = 'IN PROGRESS';
+        noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
+      } else if (isDelivered) {
+        noticeClass = 'progress-notice';
+        noticeLabel = 'IN PROGRESS';
+        noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
+      } else {
+        noticeClass = 'waiting-notice';
+        noticeLabel = 'AWAITING PAYMENT';
+        noticeText = 'This is your uploaded file. Please make payment to start your order.';
+      }
+    } else if (inProg) {
+      noticeClass = 'progress-notice';
+      noticeLabel = 'REVISION IN PROGRESS';
+      noticeText = 'Your edit request is being worked on. We\'ll email you when finished.';
+    } else if (isAwaiting) {
+      noticeClass = 'waiting-notice';
+      noticeLabel = 'ORIGINAL DESIGN';
+      noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
+    }
+    var notice = noticeText ? '<div class="' + noticeClass + '"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="' + (noticeClass === 'progress-notice' ? 'progress-label' : 'waiting-label') + '">' + noticeLabel + '</div><div class="' + (noticeClass === 'progress-notice' ? 'progress-text' : 'waiting-text') + '">' + noticeText + '</div></div></div>' : '';
 
     var serviceLabel = f.service_type ? '<div class="design-service">' + f.service_type + '</div>' : '';
 
