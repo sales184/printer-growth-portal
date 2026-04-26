@@ -430,7 +430,7 @@
       detailHtml += '<div class="actions" id="qact-' + fid + '">';
       detailHtml += '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>';
       if (subtaskId) {
-        detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid)" data-fid="' + fid + '">&#9999; Request Edit</button>';
+        detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="Design ' + (i+1) + '" data-em="' + (q.customer_email||'') + '">&#9999; Request Edit</button>';
       }
       detailHtml += '</div></div>';
     });
@@ -587,17 +587,15 @@
     window.toggleQuoteById('quote-detail-' + quoteNum);
   };
 
-  window.openQuoteEdit = function(fid) {
-    // Find card — look in both quotes tab and orders tab banner
-    var card = document.getElementById('qcard-' + fid);
-    if (!card) {
-      // Try finding by data-fid attribute
-      card = document.querySelector('[data-fid="' + fid + '"]');
+  window.openQuoteEdit = function(fid, subtaskId, label, ce) {
+    // Can be called with just fid (reads from card) or with all params
+    if (!subtaskId) {
+      var card = document.getElementById('qcard-' + fid) || document.querySelector('[data-fid="' + fid + '"]');
+      if (!card) return;
+      subtaskId = card.dataset.subtask || '';
+      label = card.dataset.label || 'Design';
+      ce = card.dataset.email || _customerEmail || '';
     }
-    if (!card) return;
-    var subtaskId = card.dataset.subtask || '';
-    var label = card.dataset.label || 'Design';
-    var ce = card.dataset.email || _customerEmail || '';
     _attachments[fid] = [];
     var actEl = document.getElementById('qact-' + fid);
     if (!actEl) return;
@@ -632,8 +630,11 @@
     delete _attachments[fid];
     var actEl = document.getElementById('qact-' + fid);
     if (!actEl) return;
+    var card = document.getElementById('qcard-' + fid) || document.querySelector('[data-fid="' + fid + '"]');
+    var label = card ? (card.dataset.label || 'Design') : 'Design';
+    var ce = card ? (card.dataset.email || _customerEmail || '') : (_customerEmail || '');
     actEl.innerHTML = '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' +
-      (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid)" data-fid="' + fid + '">&#9999; Request Edit</button>' : '');
+      (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
   };
 
   window.sendQuoteEdit = function(fid, subtaskId, label, ce) {
@@ -657,7 +658,7 @@
     Promise.all([supabaseInsert, zapierNotify]).then(function(results) {
       if (!results[0].ok) throw new Error('Insert failed');
       delete _attachments[fid];
-      document.getElementById('qact-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button><button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid)" data-fid="' + fid + '">&#9999; Request Edit</button>';
+      document.getElementById('qact-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' + (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
     }).catch(function() {
       document.getElementById('qact-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
     });
@@ -764,22 +765,22 @@
     var noticeLabel = '';
     var noticeClass = 'waiting-notice';
     if (isVectorArt) {
-      if (isDelivered && f.latest_version > 1) {
+      if (f.latest_version > 1) {
         noticeClass = 'progress-notice';
         noticeLabel = 'ARTWORK READY';
         noticeText = 'Here is your finished artwork.';
-      } else if (inProg || (isAwaiting && f.revision_status === 'in_progress')) {
+      } else if (inProg) {
         noticeClass = 'waiting-notice';
         noticeLabel = 'IN PROGRESS';
         noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
       } else if (isDelivered) {
         noticeClass = 'progress-notice';
-        noticeLabel = 'IN PROGRESS';
-        noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
+        noticeLabel = 'DELIVERED';
+        noticeText = 'Your artwork has been delivered.';
       } else {
         noticeClass = 'waiting-notice';
-        noticeLabel = 'AWAITING PAYMENT';
-        noticeText = 'This is your uploaded file. Please make payment to start your order.';
+        noticeLabel = 'IN PROGRESS';
+        noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
       }
     } else if (inProg) {
       noticeClass = 'progress-notice';
@@ -967,11 +968,21 @@
     var card  = document.getElementById('card-' + fid);
     var f     = JSON.parse(card.dataset.file);
     var label = card.dataset.label;
+    var isVecFile = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
     var versionGroups = {};
     f.all_versions.forEach(function(v){
       if (!versionGroups[v.version]) versionGroups[v.version] = [];
       versionGroups[v.version].push(v);
     });
+    // For vector art with no versions yet, inject v1 using original preview_url
+    if (!Object.keys(versionGroups).length && isVecFile && f.preview_url) {
+      versionGroups[1] = [{
+        version: 1,
+        download_url: f.preview_url,
+        preview_url: f.preview_url,
+        uploaded_at: f.created_at
+      }];
+    }
     var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
 
     var timeline = [];
