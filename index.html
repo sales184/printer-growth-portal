@@ -93,8 +93,8 @@
     .ax-progress-fill { height: 100%; background: #00aeef; transition: width 0.2s; }
     .ax-progress-pct { font-size: 10px; color: #7a6a55; font-family: monospace; min-width: 30px; text-align: right; }
     .footer-note { margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0ece4; color: #c4b89a; font-size: 11px; text-align: center; }
-    .overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(10,8,5,0.6); backdrop-filter: blur(3px); display: flex; align-items: flex-end; justify-content: center; }
-    .drawer { background: #fffdf8; border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 -8px 40px rgba(0,0,0,0.2); }
+    .overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(10,8,5,0.6); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .drawer { background: #fffdf8; border-radius: 20px; width: 100%; max-width: 520px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
     .drawer-head { padding: 20px 22px 16px; border-bottom: 1px solid #f0ece4; display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
     .drawer-title { font-family: 'Lora', serif; font-weight: 700; font-size: 17px; color: #1a1208; }
     .drawer-sub { font-size: 12px; color: #a89880; margin-top: 3px; }
@@ -513,13 +513,19 @@
   };
 
   window.openQuoteEdit = function(fid) {
+    // Find card — look in both quotes tab and orders tab banner
     var card = document.getElementById('qcard-' + fid);
+    if (!card) {
+      // Try finding by data-fid attribute
+      card = document.querySelector('[data-fid="' + fid + '"]');
+    }
     if (!card) return;
     var subtaskId = card.dataset.subtask || '';
     var label = card.dataset.label || 'Design';
     var ce = card.dataset.email || _customerEmail || '';
     _attachments[fid] = [];
     var actEl = document.getElementById('qact-' + fid);
+    if (!actEl) return;
     var ta = document.createElement('textarea');
     ta.id = 'qnote-' + fid;
     ta.placeholder = 'Describe what needs to change on ' + label + '...';
@@ -549,8 +555,10 @@
 
   window.cancelQuoteEdit = function(fid, subtaskId) {
     delete _attachments[fid];
-    document.getElementById('qact-' + fid).innerHTML =
-      subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(\'' + fid + '\')">&#9999; Request Edit</button>' : '';
+    var actEl = document.getElementById('qact-' + fid);
+    if (!actEl) return;
+    actEl.innerHTML = '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' +
+      (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid)" data-fid="' + fid + '">&#9999; Request Edit</button>' : '');
   };
 
   window.sendQuoteEdit = function(fid, subtaskId, label, ce) {
@@ -574,7 +582,7 @@
     Promise.all([supabaseInsert, zapierNotify]).then(function(results) {
       if (!results[0].ok) throw new Error('Insert failed');
       delete _attachments[fid];
-      document.getElementById('qact-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-edit" onclick="window.openQuoteEdit(\'' + fid + '\')">&#9999; Request Edit</button>';
+      document.getElementById('qact-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button><button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid)" data-fid="' + fid + '">&#9999; Request Edit</button>';
     }).catch(function() {
       document.getElementById('qact-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
     });
@@ -672,7 +680,8 @@
     });
     filesListHtml += '</div>';
 
-    var notice = inProg ? '<div class="progress-notice"><span style="font-size:14px;flex-shrink:0">&#9203;</span><div><div class="progress-label">REVISION IN PROGRESS</div><div class="progress-text">Your edit request is being worked on. We\'ll email you when finished.</div></div></div>'
+    var isVectorArt = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+    var notice = (inProg && !isVectorArt) ? '<div class="progress-notice"><span style="font-size:14px;flex-shrink:0">&#9203;</span><div><div class="progress-label">REVISION IN PROGRESS</div><div class="progress-text">Your edit request is being worked on. We\'ll email you when finished.</div></div></div>'
                 : isAwaiting ? '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">ORIGINAL DESIGN</div><div class="waiting-text">This is your uploaded file. Our team is preparing the final artwork.</div></div></div>' : '';
 
     var serviceLabel = f.service_type ? '<div class="design-service">' + f.service_type + '</div>' : '';
@@ -683,7 +692,7 @@
       notice +
       '<div class="actions" id="act-' + f.id + '">' +
       (hasHistory ? '<button class="btn btn-hist" onclick="openHistory(\'' + f.id + '\')">&#128339; History (' + f.latest_version + 'v &middot; ' + f.edit_requests.length + ' req)</button>' : '') +
-      (inProg ? '<button class="btn btn-pend" disabled>&#9999; Revision Already Pending</button>'
+      ((inProg && !isVectorArt) ? '<button class="btn btn-pend" disabled>&#9999; Revision Already Pending</button>'
               : '<button class="btn btn-edit" onclick="openEditFromCard(\'' + f.id + '\')">&#9999; Request Edit</button>') +
       '</div>';
     return card;
