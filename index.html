@@ -232,7 +232,7 @@
           sq('files', 'select=*&' + orderIdFilter + '&order=created_at.asc'),
           sq('file_versions', 'select=*&order=version.asc'),
           sq('edit_requests', 'select=*&order=created_at.asc'),
-          sq('quotes', 'select=id,subtask_id&customer_email=eq.' + encodeURIComponent(customer.email) + '&status=eq.paid')
+          sq('quotes', 'select=id,subtask_id&customer_email=eq.' + encodeURIComponent(customer.email) + '&status=eq.paid').catch(function(){ return []; })
         ]).then(function(res) {
           var files = res[0]||[], versions = res[1]||[], requests = res[2]||[], paidQuotes = res[3]||[];
           files = files.map(function(f) {
@@ -431,8 +431,10 @@
         detailHtml += '</div>';
       }
       detailHtml += '</div>';
-      detailHtml += '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">AWAITING QUOTE</div><div class="waiting-text">This is your uploaded file. We\'ll send you an invoice when your quote is ready.</div></div></div>';
-      detailHtml += '<div class="actions" id="qact-' + fid + '">';
+      var qNoticeLabel = q.status === 'quote_ready' ? 'QUOTE READY — AWAITING PAYMENT' : 'AWAITING QUOTE';
+      var qNoticeText = q.status === 'quote_ready' ? 'Your quote is ready. Please make payment to start your order.' : 'This is your uploaded file. We\'ll send you an invoice when your quote is ready.';
+      detailHtml += '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">' + qNoticeLabel + '</div><div class="waiting-text">' + qNoticeText + '</div></div></div>';
+      detailHtml += '<div class="actions" id="qact-q-' + fid + '">';
       detailHtml += '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>';
       if (subtaskId) {
         detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="Design ' + (i+1) + '" data-em="' + (q.customer_email||'') + '">&#9999; Request Edit</button>';
@@ -602,7 +604,7 @@
       ce = card.dataset.email || _customerEmail || '';
     }
     _attachments[fid] = [];
-    var actEl = document.getElementById('qact-' + fid);
+    var actEl = document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
     if (!actEl) return;
     var ta = document.createElement('textarea');
     ta.id = 'qnote-' + fid;
@@ -633,7 +635,7 @@
 
   window.cancelQuoteEdit = function(fid, subtaskId) {
     delete _attachments[fid];
-    var actEl = document.getElementById('qact-' + fid);
+    var actEl = document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
     if (!actEl) return;
     var card = document.getElementById('qcard-' + fid) || document.querySelector('[data-fid="' + fid + '"]');
     var label = card ? (card.dataset.label || 'Design') : 'Design';
@@ -648,7 +650,8 @@
     var ax = (_attachments[fid] || []).filter(function(a){ return a && a.url; });
     var stillUploading = (_attachments[fid] || []).some(function(a){ return a && a.uploading; });
     if (stillUploading) { alert('Please wait for attachments to finish uploading.'); return; }
-    document.getElementById('qact-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
+    var _qactEl = document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
+    if (_qactEl) _qactEl.innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
     var attachmentsPayload = ax.map(function(a){ return {name: a.name, url: a.url}; });
     var supabaseInsert = fetch('https://smmvhozhzeemojqrazbl.supabase.co/rest/v1/edit_requests', {
       method: 'POST',
@@ -663,9 +666,9 @@
     Promise.all([supabaseInsert, zapierNotify]).then(function(results) {
       if (!results[0].ok) throw new Error('Insert failed');
       delete _attachments[fid];
-      document.getElementById('qact-' + fid).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' + (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
+      (_qactEl || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid)).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' + (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
     }).catch(function() {
-      document.getElementById('qact-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
+      (_qactEl || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid)).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
     });
   };
 
