@@ -301,6 +301,10 @@
     // Show most recent quote as banner in Orders tab
     var bannerArea = document.getElementById('quote-banner-area');
     if (quoteGroupOrder.length) {
+      var bannerLabel = document.createElement('div');
+      bannerLabel.style.cssText = 'font-size:11px;font-weight:700;letter-spacing:1.5px;color:#a89880;font-family:monospace;text-transform:uppercase;margin-bottom:8px;';
+      bannerLabel.textContent = '— Most Recent Quote —';
+      bannerArea.appendChild(bannerLabel);
       var bannerCard = buildQuoteGroupCard(quoteGroups[quoteGroupOrder[0]], true);
       bannerArea.appendChild(bannerCard);
       // Auto-expand banner directly
@@ -653,7 +657,8 @@
     var inProg     = f.revision_status === 'in_progress';
     var isDelivered = f.revision_status === 'delivered';
     var isAwaiting  = !isDelivered && !inProg;
-    var hasHistory = f.all_versions.length > 1 || f.edit_requests.length > 0;
+    var isVectorArt = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+    var hasHistory = f.all_versions.length > 1 || f.edit_requests.length > 0 || isVectorArt;
     var label      = 'Design ' + (idx+1);
     var subLabel   = isAwaiting ? 'Original upload' : (f.is_revised ? 'Latest revision' : 'Final artwork');
     var statusBadge = inProg ? '<span class="card-status-badge progress">IN PROGRESS</span>'
@@ -667,20 +672,23 @@
     card.dataset.ce    = ce||'';
     card.dataset.fid   = f.id;
 
+    var isVectorArt = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+
     var filesListHtml = '<div class="files-list">';
     f.current_files.forEach(function(cf, i){
       var fileLabel = f.current_files.length > 1 ? 'File ' + (i+1) : subLabel;
       var fileMeta = f.current_files.length > 1 ? subLabel : ('Version ' + cf.version);
-      var thumb = cf.preview_url ? '<img src="' + cf.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+      // For vector art, always use original preview_url for thumbnail
+      var previewSrc = isVectorArt ? (f.preview_url || cf.preview_url || '') : (cf.preview_url || '');
+      var thumb = previewSrc ? '<img src="' + previewSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
       filesListHtml += '<div class="file-row">' +
-        '<div class="file-thumb" onclick="viewImg(\'' + (cf.preview_url||'') + '\',\'' + label + ' \u2014 ' + fileLabel + '\')">' + thumb + '</div>' +
+        '<div class="file-thumb" onclick="viewImg(\'' + (previewSrc||'') + '\',\'' + label + ' \u2014 ' + fileLabel + '\')">' + thumb + '</div>' +
         '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">' + fileMeta + '</div></div>' +
         '<a href="' + (cf.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
       '</div>';
     });
     filesListHtml += '</div>';
 
-    var isVectorArt = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
     var notice = (inProg && !isVectorArt) ? '<div class="progress-notice"><span style="font-size:14px;flex-shrink:0">&#9203;</span><div><div class="progress-label">REVISION IN PROGRESS</div><div class="progress-text">Your edit request is being worked on. We\'ll email you when finished.</div></div></div>'
                 : isAwaiting ? '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">ORIGINAL DESIGN</div><div class="waiting-text">This is your uploaded file. Our team is preparing the final artwork.</div></div></div>' : '';
 
