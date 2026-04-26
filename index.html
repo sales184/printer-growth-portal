@@ -441,120 +441,135 @@
   }
 
   window.openQuoteHistory = function(fid) {
-    // First find the real file_id from the files table using clickup_subtask_id or fid
-    // fid could be a quote row UUID or a files table UUID
-    Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/file_versions?file_id=eq.' + fid + '&order=version.asc', {
-        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
-      }).then(function(r){ return r.json(); }),
-      fetch(SUPABASE_URL + '/rest/v1/edit_requests?file_id=eq.' + fid + '&order=created_at.asc', {
-        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
-      }).then(function(r){ return r.json(); }),
-      fetch(SUPABASE_URL + '/rest/v1/files?id=eq.' + fid + '&limit=1', {
-        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
-      }).then(function(r){ return r.json(); })
-    ]).then(function(res) {
-      var versions = res[0] || [];
-      var requests = res[1] || [];
-      var fileRow = (res[2] && res[2][0]) ? res[2][0] : null;
+    var card = document.getElementById('qcard-' + fid);
+    if (!card) card = document.querySelector('[data-fid="' + fid + '"]');
+    var label = card ? (card.dataset.label || 'Design') : 'Design';
+    var subtaskId = card ? (card.dataset.subtask || '') : '';
 
-      var card = document.getElementById('qcard-' + fid);
-      var label = card ? (card.dataset.label || 'Design') : 'Design';
-      var previewSrc = fileRow ? (fileRow.preview_url || '') : (card ? (card.querySelector('.file-thumb img') ? card.querySelector('.file-thumb img').src : '') : '');
+    // Look up file row by subtask_id first, then fall back to fid
+    var fileQuery = subtaskId
+      ? SUPABASE_URL + '/rest/v1/files?clickup_subtask_id=eq.' + subtaskId + '&limit=1'
+      : SUPABASE_URL + '/rest/v1/files?id=eq.' + fid + '&limit=1';
 
-      // Build timeline same as openHistory
-      var versionGroups = {};
-      versions.forEach(function(v){
-        if (!versionGroups[v.version]) versionGroups[v.version] = [];
-        versionGroups[v.version].push(v);
-      });
+    fetch(fileQuery, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+    }).then(function(r){ return r.json(); }).then(function(fileRows) {
+      var fileRow = fileRows && fileRows[0] ? fileRows[0] : null;
+      var realFid = fileRow ? fileRow.id : fid;
+      var previewSrc = fileRow ? (fileRow.preview_url || '') : '';
 
-      // If no versions in file_versions table, use the original file as v1
-      if (!versions.length && previewSrc) {
-        versionGroups[1] = [{
-          version: 1,
-          download_url: previewSrc,
-          preview_url: previewSrc,
-          uploaded_at: fileRow ? fileRow.created_at : null
-        }];
+      // If no file row found, use the card's img src
+      if (!previewSrc && card) {
+        var img = card.querySelector('.file-thumb img');
+        if (img) previewSrc = img.src;
       }
 
-      var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
-      var latestVersion = versionNums.length ? Math.max.apply(null, versionNums) : 1;
+      Promise.all([
+        fetch(SUPABASE_URL + '/rest/v1/file_versions?file_id=eq.' + realFid + '&order=version.asc', {
+          headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+        }).then(function(r){ return r.json(); }),
+        fetch(SUPABASE_URL + '/rest/v1/edit_requests?file_id=eq.' + realFid + '&order=created_at.asc', {
+          headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+        }).then(function(r){ return r.json(); })
+      ]).then(function(res) {
+        var versions = res[0] || [];
+        var requests = res[1] || [];
 
-      var timeline = [];
-      versionNums.forEach(function(vn){
-        var filesAtV = versionGroups[vn];
-        var ts = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).getTime() : 0;
-        timeline.push({ type: 'version', vn: vn, filesAtV: filesAtV, ts: ts });
-      });
-      requests.forEach(function(r){
-        var ts = r.created_at ? new Date(r.created_at).getTime() : 0;
-        timeline.push({ type: 'request', data: r, ts: ts });
-      });
-      timeline.sort(function(a,b){ return a.ts - b.ts; });
+        var versionGroups = {};
+        versions.forEach(function(v){
+          if (!versionGroups[v.version]) versionGroups[v.version] = [];
+          versionGroups[v.version].push(v);
+        });
 
-      var bodyHtml = '';
-      timeline.forEach(function(item){
-        if (item.type === 'version') {
-          var vn = item.vn;
-          var filesAtV = item.filesAtV;
-          var isCur = vn === latestVersion;
-          var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-          bodyHtml += '<div class="vgroup">' +
-            '<div class="vgroup-head">' +
-              '<div class="vgroup-num ' + (isCur?'current':'old') + '">v' + vn + '</div>' +
-              '<div class="vgroup-label">Version ' + vn + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
-              '<div class="vgroup-date">' + date + '</div>' +
-            '</div>' +
-            '<div class="vgroup-files">';
-          filesAtV.forEach(function(v, i){
-            var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
-            var thumbSrc = vn === 1 ? previewSrc : (v.preview_url || previewSrc);
-            var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
-            bodyHtml += '<div class="file-row">' +
-              '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + (thumbSrc||'') + '" data-lbl="' + label + ' v' + vn + '">' + thumb + '</div>' +
-              '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
-              '<a href="' + (v.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
-            '</div>';
-          });
-          bodyHtml += '</div></div>';
-        } else {
-          var r = item.data;
-          var ip = r.status === 'in_progress';
-          var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-          var atts = r.attachments;
-          if (typeof atts === 'string') { try { atts = JSON.parse(atts); } catch(e){ atts = []; } }
-          var axHtml = '';
-          if (atts && atts.length) {
-            axHtml = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">' +
-              atts.map(function(a){
-                return '<a href="' + a.url + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border:1px solid #e8e2d8;border-radius:6px;font-size:11px;color:#3d3020;text-decoration:none;">' +
-                  '<span style="color:#00aeef;">&#128206;</span>' +
-                  '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.name || 'attachment') + '</span>' +
-                  '<span style="color:#00aeef;font-weight:600;">View</span>' +
-                '</a>';
-              }).join('') + '</div>';
-          }
-          bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
-            '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
-            (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
-            '</div><span class="req-date">' + rDate + '</span></div>' +
-            '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
-            axHtml + '</div>';
+        // Always show v1 as original upload with previewSrc
+        if (!versionGroups[1]) {
+          versionGroups[1] = [{
+            version: 1,
+            download_url: previewSrc,
+            preview_url: previewSrc,
+            uploaded_at: fileRow ? fileRow.created_at : null
+          }];
         }
-      });
 
-      document.getElementById('drawer-root').innerHTML =
-        '<div class="overlay" onclick="closeDrawer()"><div class="drawer" onclick="event.stopPropagation()">' +
-        '<div class="drawer-head"><div><div class="drawer-title">' + label + ' &mdash; History</div>' +
-        '<div class="drawer-sub">' + versionNums.length + ' version' + (versionNums.length!==1?'s':'') + ' &middot; ' + requests.length + ' request' + (requests.length!==1?'s':'') + '</div></div>' +
-        '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
-        '<div class="drawer-body">' + bodyHtml + '</div></div></div>';
-      setTimeout(function(){
-        var body = document.querySelector('.drawer-body');
-        if (body) body.scrollTop = body.scrollHeight;
-      }, 50);
+        var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
+        var latestVersion = Math.max.apply(null, versionNums);
+
+        var timeline = [];
+        versionNums.forEach(function(vn){
+          var filesAtV = versionGroups[vn];
+          var ts = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).getTime() : 0;
+          timeline.push({ type: 'version', vn: vn, filesAtV: filesAtV, ts: ts });
+        });
+        requests.forEach(function(r){
+          var ts = r.created_at ? new Date(r.created_at).getTime() : 0;
+          timeline.push({ type: 'request', data: r, ts: ts });
+        });
+        timeline.sort(function(a,b){ return a.ts - b.ts; });
+
+        var bodyHtml = '';
+        timeline.forEach(function(item){
+          if (item.type === 'version') {
+            var vn = item.vn;
+            var filesAtV = item.filesAtV;
+            var isCur = vn === latestVersion;
+            var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+            bodyHtml += '<div class="vgroup">' +
+              '<div class="vgroup-head">' +
+                '<div class="vgroup-num ' + (isCur?'current':'old') + '">v' + vn + '</div>' +
+                '<div class="vgroup-label">Version ' + vn + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
+                '<div class="vgroup-date">' + date + '</div>' +
+              '</div>' +
+              '<div class="vgroup-files">';
+            filesAtV.forEach(function(v, i){
+              var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
+              // Always use original previewSrc for thumbnail on vector art
+              var thumbSrc = previewSrc || v.preview_url || '';
+              var dlUrl = v.download_url || previewSrc || '#';
+              var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+              bodyHtml += '<div class="file-row">' +
+                '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' v' + vn + '">' + thumb + '</div>' +
+                '<div class="file-info"><div class="file-label">' + (vn === 1 ? 'Original upload' : fileLabel) + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
+                '<a href="' + dlUrl + '" class="file-dl" download>&#11015; Download</a>' +
+              '</div>';
+            });
+            bodyHtml += '</div></div>';
+          } else {
+            var r = item.data;
+            var ip = r.status === 'in_progress';
+            var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+            var atts = r.attachments;
+            if (typeof atts === 'string') { try { atts = JSON.parse(atts); } catch(e){ atts = []; } }
+            var axHtml = '';
+            if (atts && atts.length) {
+              axHtml = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">' +
+                atts.map(function(a){
+                  return '<a href="' + a.url + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border:1px solid #e8e2d8;border-radius:6px;font-size:11px;color:#3d3020;text-decoration:none;">' +
+                    '<span style="color:#00aeef;">&#128206;</span>' +
+                    '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.name || 'attachment') + '</span>' +
+                    '<span style="color:#00aeef;font-weight:600;">View</span>' +
+                  '</a>';
+                }).join('') + '</div>';
+            }
+            bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
+              '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
+              (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
+              '</div><span class="req-date">' + rDate + '</span></div>' +
+              '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
+              axHtml + '</div>';
+          }
+        });
+
+        document.getElementById('drawer-root').innerHTML =
+          '<div class="overlay" onclick="closeDrawer()"><div class="drawer" onclick="event.stopPropagation()">' +
+          '<div class="drawer-head"><div><div class="drawer-title">' + label + ' &mdash; History</div>' +
+          '<div class="drawer-sub">' + versionNums.length + ' version' + (versionNums.length!==1?'s':'') + ' &middot; ' + requests.length + ' request' + (requests.length!==1?'s':'') + '</div></div>' +
+          '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
+          '<div class="drawer-body">' + bodyHtml + '</div></div></div>';
+        setTimeout(function(){
+          var body = document.querySelector('.drawer-body');
+          if (body) body.scrollTop = body.scrollHeight;
+        }, 50);
+      });
     });
   };
 
@@ -867,8 +882,16 @@
 
   window.cancelEdit = function(fid) {
     delete _attachments[fid];
-    document.getElementById('act-' + fid).innerHTML =
-      '<button class="btn btn-edit" onclick="openEditFromCard(\'' + fid + '\')">&#9999; Request Edit</button>';
+    var card = document.getElementById('card-' + fid);
+    var f = card ? JSON.parse(card.dataset.file) : null;
+    var isVec = f && f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+    var hasHistory = f && (f.all_versions.length > 1 || f.edit_requests.length > 0 || isVec);
+    var html = '';
+    if (hasHistory) {
+      html += '<button class="btn btn-hist" onclick="openHistory(\'' + fid + '\')">&#128339; History</button>';
+    }
+    html += '<button class="btn btn-edit" onclick="openEditFromCard(\'' + fid + '\')">&#9999; Request Edit</button>';
+    document.getElementById('act-' + fid).innerHTML = html;
   };
 
   window.sendEdit = function(fid) {
@@ -921,11 +944,12 @@
       .then(function(results) {
         if (!results[0].ok) throw new Error('Supabase insert failed: ' + results[0].status);
         delete _attachments[fid];
-        var hasHistory = f.all_versions.length > 1 || f.edit_requests.length > 0;
+        var isVec = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+        var hasHistory = f.all_versions.length > 1 || f.edit_requests.length > 0 || isVec;
         var actEl = document.getElementById('act-' + fid);
         var html = '<div class="sent">&#10003; Sent! Check your email for updates.</div>';
         if (hasHistory) {
-          html += '<button class="btn btn-hist" onclick="openHistory(\'' + fid + '\')">&#128339; History (' + f.latest_version + 'v &middot; ' + f.edit_requests.length + ' req)</button>';
+          html += '<button class="btn btn-hist" onclick="openHistory(\'' + fid + '\')">&#128339; History</button>';
         }
         html += '<button class="btn btn-edit" onclick="openEditFromCard(\'' + fid + '\')">&#9999; Request Edit</button>';
         actEl.innerHTML = html;
