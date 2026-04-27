@@ -982,10 +982,10 @@
       if (!versionGroups[v.version]) versionGroups[v.version] = [];
       versionGroups[v.version].push(v);
     });
-    // For vector art with no versions yet, inject v1 using original_preview_url
-    if (!Object.keys(versionGroups).length && isVecFile) {
+    // For vector art, always inject v1 from original_preview_url if not already in file_versions
+    if (isVecFile) {
       var origPreview = f.original_preview_url || f.preview_url || '';
-      if (origPreview) {
+      if (origPreview && !versionGroups[1]) {
         versionGroups[1] = [{
           version: 1,
           download_url: origPreview,
