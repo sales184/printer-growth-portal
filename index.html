@@ -402,6 +402,7 @@
 
     var detailHtml = '<div class="order-detail" id="' + detailId + '" style="display:none;">';
     detailHtml += '<div class="grid">';
+    group.sort(function(a, b) { var an = a.base_name || a.id; var bn = b.base_name || b.id; return an.localeCompare(bn, undefined, {numeric: true}); });
     group.forEach(function(q, i) {
       var fid = q.id;
       var subtaskId = q.subtask_id || '';
