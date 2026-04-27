@@ -61,7 +61,7 @@
     .file-info { flex: 1; min-width: 0; }
     .file-label { font-size: 12px; font-weight: 600; color: #1a1208; }
     .file-meta { font-size: 11px; color: #a89880; margin-top: 2px; }
-    .file-dl { font-size: 11px; font-weight: 600; text-decoration: none; color: #00aeef; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #b3e5fa; flex-shrink: 0; }
+    .file-dl { font-size: 11px; font-weight: 600; text-decoration: none; color: #00aeef; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #b3e5fa; flex-shrink: 0; cursor: pointer; font-family: 'DM Sans', sans-serif; }
     .file-dl:hover { background: #e6f7fd; }
     .progress-notice, .waiting-notice, .ready-notice { border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start; margin: 0 14px 10px; }
     .progress-notice { background: #e6f7fd; border: 1px solid #b3e5fa; }
@@ -426,7 +426,7 @@
         detailHtml += '<img src="' + q.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">';
         detailHtml += '</div>';
         detailHtml += '<div class="file-info"><div class="file-label">Original upload</div><div class="file-meta">Submitted file</div></div>';
-        detailHtml += '<a href="' + q.preview_url + '" class="file-dl" download>&#11015; Download</a>';
+        detailHtml += '<button class="file-dl" onclick="downloadFile(\'' + q.preview_url + '\',\'design-file\')" >&#11015; Download</button>';
         detailHtml += '</div>';
       }
       detailHtml += '</div>';
@@ -533,7 +533,7 @@
               bodyHtml += '<div class="file-row">' +
                 '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' v' + vn + '">' + thumb + '</div>' +
                 '<div class="file-info"><div class="file-label">' + (vn === 1 ? 'Original upload' : fileLabel) + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
-                '<a href="' + dlUrl + '" class="file-dl" download>&#11015; Download</a>' +
+                '<button class="file-dl" onclick="downloadFile(\'' + dlUrl + '\',\'design-file\')" >&#11015; Download</button>' +
               '</div>';
             });
             bodyHtml += '</div></div>';
@@ -758,7 +758,7 @@
       filesListHtml += '<div class="file-row">' +
         '<div class="file-thumb" onclick="viewImg(\'' + (previewSrc||'') + '\',\'' + label + ' \u2014 ' + fileLabel + '\')">' + thumb + '</div>' +
         '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">' + fileMeta + '</div></div>' +
-        '<a href="' + (cf.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
+        '<button class="file-dl" onclick="downloadFile(\'' + (cf.download_url||'#') + '\',\'design-file\')" >&#11015; Download</button>' +
       '</div>';
     });
     filesListHtml += '</div>';
@@ -1024,7 +1024,7 @@
           bodyHtml += '<div class="file-row">' +
             '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' v' + vn + ' ' + fileLabel + '">' + thumb + '</div>' +
             '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
-            '<a href="' + (v.download_url||'#') + '" class="file-dl" download>&#11015; Download</a>' +
+            '<button class="file-dl" onclick="downloadFile(\'' + (v.download_url||'#') + '\',\'design-file\')" >&#11015; Download</button>' +
           '</div>';
         });
         bodyHtml += '</div></div>';
@@ -1080,6 +1080,21 @@
   };
 
   window.closeViewer = function() { document.getElementById('viewer-root').innerHTML = ''; };
+
+  window.downloadFile = function(url, filename) {
+    fetch(url)
+      .then(function(r){ return r.blob(); })
+      .then(function(blob){
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename || 'download';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+      })
+      .catch(function(){ window.open(url, '_blank'); });
+  };
 
   function renderNoOrders(customer) {
     document.getElementById('app-root').innerHTML =
