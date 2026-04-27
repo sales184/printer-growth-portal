@@ -48,6 +48,7 @@
     .design-name { font-family: 'Lora', serif; font-weight: 700; font-size: 14px; color: #1a1208; line-height: 1.2; }
     .design-label { font-size: 10px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
     .design-service { font-size: 10px; color: #00aeef; font-weight: 700; letter-spacing: 0.5px; margin-top: 1px; text-transform: uppercase; font-family: monospace; }
+    .design-filename { font-size: 10px; color: #a89880; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
     .card-status-badge { font-size: 9px; padding: 3px 8px; border-radius: 99px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; flex-shrink: 0; }
     .card-status-badge.progress { background: #00aeef; color: #fff; }
     .card-status-badge.revised { background: #059669; color: #fff; }
@@ -410,7 +411,7 @@
       var fid = q.id;
       var subtaskId = q.subtask_id || '';
       detailHtml += '<div class="card original" id="qcard-' + fid + '" data-fid="' + fid + '" data-subtask="' + subtaskId + '" data-email="' + (q.customer_email||'') + '" data-label="Design ' + (i+1) + '">';
-      detailHtml += '<div class="card-header"><div><div class="design-name">Design ' + (i+1) + '</div><div class="design-service">VECTOR ART</div></div><span class="card-status-badge original">ORIGINAL</span></div>';
+      detailHtml += '<div class="card-header"><div><div class="design-name">Design ' + (i+1) + '</div><div class="design-service">VECTOR ART</div>' + (q.original_file_name ? '<div class="design-filename" title="' + q.original_file_name + '">' + q.original_file_name + '</div>' : '') + '</div><span class="card-status-badge original">ORIGINAL</span></div>';
       detailHtml += '<div class="files-list">';
       if (q.preview_url) {
         detailHtml += '<div class="file-row">';
@@ -788,9 +789,10 @@
     var notice = noticeText ? '<div class="' + noticeClass + '"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="' + (noticeClass === 'ready-notice' ? 'ready-label' : noticeClass === 'progress-notice' ? 'progress-label' : 'waiting-label') + '">' + noticeLabel + '</div><div class="' + (noticeClass === 'ready-notice' ? 'ready-text' : noticeClass === 'progress-notice' ? 'progress-text' : 'waiting-text') + '">' + noticeText + '</div></div></div>' : '';
 
     var serviceLabel = f.service_type ? '<div class="design-service">' + f.service_type + '</div>' : '';
+    var fileNameLabel = f.original_file_name ? '<div class="design-filename" title="' + f.original_file_name + '">' + f.original_file_name + '</div>' : '';
 
     card.innerHTML =
-      '<div class="card-header"><div><div class="design-name">' + label + '</div>' + serviceLabel + '<div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div></div>' + statusBadge + '</div>' +
+      '<div class="card-header"><div><div class="design-name">' + label + '</div>' + serviceLabel + fileNameLabel + '<div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div></div>' + statusBadge + '</div>' +
       filesListHtml +
       notice +
       '<div class="actions" id="act-' + f.id + '">' +
