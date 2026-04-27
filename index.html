@@ -64,9 +64,12 @@
     .file-dl:hover { background: #e6f7fd; }
     .progress-notice, .waiting-notice { border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start; margin: 0 14px 10px; }
     .progress-notice { background: #e6f7fd; border: 1px solid #b3e5fa; }
+    .ready-notice { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .waiting-notice { background: #f5f0e8; border: 1px solid #e8e2d8; }
     .progress-label, .waiting-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
     .progress-label { color: #005577; }
+    .ready-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; color: #059669; }
+    .ready-text { font-size: 11px; margin-top: 2px; line-height: 1.4; color: #059669; }
     .waiting-label { color: #7a6a55; }
     .progress-text, .waiting-text { font-size: 11px; margin-top: 2px; line-height: 1.4; }
     .progress-text { color: #0088bb; }
@@ -425,7 +428,7 @@
       detailHtml += '<div class="actions" id="qact-q-' + fid + '">';
       detailHtml += '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>';
       if (subtaskId) {
-        detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="Design ' + (i+1) + '" data-em="' + (q.customer_email||'') + '">&#9999; Request Edit</button>';
+        detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em,this)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="Design ' + (i+1) + '" data-em="' + (q.customer_email||'') + '">&#9999; Request Edit</button>';
       }
       detailHtml += '</div></div>';
     });
@@ -576,7 +579,7 @@
     window.toggleQuoteById('quote-detail-' + quoteNum);
   };
 
-  window.openQuoteEdit = function(fid, subtaskId, label, ce) {
+  window.openQuoteEdit = function(fid, subtaskId, label, ce, btn) {
     if (!subtaskId) {
       var card = document.getElementById('qcard-' + fid) || document.querySelector('[data-fid="' + fid + '"]');
       if (!card) return;
@@ -585,7 +588,9 @@
       ce = card.dataset.email || _customerEmail || '';
     }
     _attachments[fid] = [];
-    var actEl = document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
+    var actEl = btn ? btn.closest('.actions') : null;
+    if (!actEl) actEl = document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
+    _attachments[fid + '__el'] = actEl;
     if (!actEl) return;
     var ta = document.createElement('textarea');
     ta.id = 'qnote-' + fid;
@@ -615,14 +620,15 @@
   };
 
   window.cancelQuoteEdit = function(fid, subtaskId) {
+    var actEl = _attachments[fid + '__el'] || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
     delete _attachments[fid];
-    var actEl = document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
+    delete _attachments[fid + '__el'];
     if (!actEl) return;
     var card = document.getElementById('qcard-' + fid) || document.querySelector('[data-fid="' + fid + '"]');
     var label = card ? (card.dataset.label || 'Design') : 'Design';
     var ce = card ? (card.dataset.email || _customerEmail || '') : (_customerEmail || '');
     actEl.innerHTML = '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' +
-      (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
+      (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em,this)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
   };
 
   window.sendQuoteEdit = function(fid, subtaskId, label, ce) {
@@ -631,7 +637,7 @@
     var ax = (_attachments[fid] || []).filter(function(a){ return a && a.url; });
     var stillUploading = (_attachments[fid] || []).some(function(a){ return a && a.uploading; });
     if (stillUploading) { alert('Please wait for attachments to finish uploading.'); return; }
-    var _qactEl = document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
+    var _qactEl = _attachments[fid + '__el'] || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
     if (_qactEl) _qactEl.innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
     var attachmentsPayload = ax.map(function(a){ return {name: a.name, url: a.url}; });
     var supabaseInsert = fetch(SUPABASE_URL + '/rest/v1/edit_requests', {
@@ -647,7 +653,7 @@
     Promise.all([supabaseInsert, zapierNotify]).then(function(results) {
       if (!results[0].ok) throw new Error('Insert failed');
       delete _attachments[fid];
-      (_qactEl || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid)).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' + (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
+      (_qactEl || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid)).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' + (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em,this)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
     }).catch(function() {
       (_qactEl || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid)).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
     });
@@ -752,7 +758,7 @@
     var noticeClass = 'waiting-notice';
     if (isVectorArt) {
       if (f.latest_version > 1) {
-        noticeClass = 'progress-notice';
+        noticeClass = 'ready-notice';
         noticeLabel = 'ARTWORK READY';
         noticeText = 'Here is your finished artwork.';
       } else if (inProg) {
@@ -760,7 +766,7 @@
         noticeLabel = 'IN PROGRESS';
         noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
       } else if (isDelivered) {
-        noticeClass = 'progress-notice';
+        noticeClass = 'ready-notice';
         noticeLabel = 'DELIVERED';
         noticeText = 'Your artwork has been delivered.';
       } else {
@@ -777,7 +783,7 @@
       noticeLabel = 'ORIGINAL DESIGN';
       noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
     }
-    var notice = noticeText ? '<div class="' + noticeClass + '"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="' + (noticeClass === 'progress-notice' ? 'progress-label' : 'waiting-label') + '">' + noticeLabel + '</div><div class="' + (noticeClass === 'progress-notice' ? 'progress-text' : 'waiting-text') + '">' + noticeText + '</div></div></div>' : '';
+    var notice = noticeText ? '<div class="' + noticeClass + '"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="' + (noticeClass === 'ready-notice' ? 'ready-label' : noticeClass === 'progress-notice' ? 'progress-label' : 'waiting-label') + '">' + noticeLabel + '</div><div class="' + (noticeClass === 'ready-notice' ? 'ready-text' : noticeClass === 'progress-notice' ? 'progress-text' : 'waiting-text') + '">' + noticeText + '</div></div></div>' : '';
 
     var serviceLabel = f.service_type ? '<div class="design-service">' + f.service_type + '</div>' : '';
 
