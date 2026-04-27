@@ -229,7 +229,7 @@
         var orderIds = orders.map(function(o){ return o.shopify_order_id; });
         var orderIdFilter = 'shopify_order_id=in.(' + orderIds.join(',') + ')';
         Promise.all([
-          sq('files', 'select=*&' + orderIdFilter + '&order=created_at.asc'),
+          sq('files', 'select=*&' + orderIdFilter + '&order=clickup_subtask_id.asc'),
           sq('file_versions', 'select=*&order=version.asc'),
           sq('edit_requests', 'select=*&order=created_at.asc'),
           sq('quotes', 'select=id,subtask_id&customer_email=eq.' + encodeURIComponent(customer.email) + '&status=eq.paid').catch(function(){ return []; })
@@ -237,7 +237,6 @@
           var files = res[0]||[], versions = res[1]||[], requests = res[2]||[], paidQuotes = res[3]||[];
           files = files.map(function(f) {
             f.all_versions  = versions.filter(function(v){ return v.file_id === f.id; });
-            // Match edit requests by file_id directly, OR by quote UUID via subtask_id match
             var paidQuoteIds = paidQuotes.filter(function(q){ return q.subtask_id === f.clickup_subtask_id; }).map(function(q){ return q.id; });
             f.edit_requests = requests.filter(function(r){ 
               return r.file_id === f.id || paidQuoteIds.indexOf(r.file_id) !== -1;
@@ -280,7 +279,6 @@
     html += '<div class="customer-title">' + (customer.name || customer.email) + '</div>';
     html += '<div class="customer-meta"><span>' + orders.length + ' order' + (orders.length!==1?'s':'') + '</span></div></div>';
     html += '<a href="https://printergrowth.com/pages/artwork-services" class="btn-order-more" target="_blank">+ Order More Artwork</a></div>';
-    // Count unique quote groups for badge
     var uniqueQuoteNumbers = {};
     quotes.forEach(function(q){ uniqueQuoteNumbers[q.quote_number || q.id] = true; });
     var quoteGroupCount = Object.keys(uniqueQuoteNumbers).length;
@@ -293,7 +291,6 @@
     html += '<div id="tab-quotes" style="display:none"><div id="quotes-list"></div></div>';
     document.getElementById('app-root').innerHTML = html;
 
-    // Group quotes by quote_number, sorted newest first
     var quoteGroups = {};
     var quoteGroupOrder = [];
     quotes.forEach(function(q) {
@@ -303,7 +300,6 @@
     });
     quoteGroupOrder.sort(function(a, b) { return Number(b) - Number(a); });
 
-    // Show most recent quote as banner in Orders tab
     var bannerArea = document.getElementById('quote-banner-area');
     if (quoteGroupOrder.length) {
       var bannerLabel = document.createElement('div');
@@ -312,7 +308,6 @@
       bannerArea.appendChild(bannerLabel);
       var bannerCard = buildQuoteGroupCard(quoteGroups[quoteGroupOrder[0]], true);
       bannerArea.appendChild(bannerCard);
-      // Auto-expand banner directly
       setTimeout(function(){
         var d = document.getElementById('quote-detail-banner-' + quoteGroupOrder[0]);
         if (d) d.style.display = 'block';
@@ -333,7 +328,6 @@
       quoteGroupOrder.forEach(function(key, i) {
         var qcard = buildQuoteGroupCard(quoteGroups[key], false);
         qlist.appendChild(qcard);
-        // Auto-expand most recent quote directly
         if (i === 0) setTimeout(function(){
           var d = document.getElementById('quote-detail-' + key);
           if (d) d.style.display = 'block';
@@ -349,23 +343,19 @@
     fetch('https://smmvhozhzeemojqrazbl.supabase.co/rest/v1/quotes?quote_number=eq.' + quoteNumber, {
       method: 'DELETE',
       headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us'
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + SUPABASE_ANON
       }
     }).then(function() {
-      // Remove cards with this quote number
       document.querySelectorAll('[data-quote-number="' + quoteNumber + '"]').forEach(function(el){ el.remove(); });
-      // Update banner
       var bannerArea = document.getElementById('quote-banner-area');
       if (bannerArea) {
         var remaining = bannerArea.querySelector('[data-quote-number]');
         if (!remaining) bannerArea.innerHTML = '';
       }
-      // Update tab badge
       var remaining = document.querySelectorAll('#quotes-list [data-quote-number]').length;
       var tabBtn = document.getElementById('tab-btn-quotes');
       if (tabBtn) tabBtn.innerHTML = 'Quotes' + (remaining ? '<span class="tab-badge">' + remaining + '</span>' : '');
-      // Show empty state if no quotes left
       var qlist = document.getElementById('quotes-list');
       if (qlist && !qlist.querySelector('[data-quote-number]')) {
         qlist.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No quotes yet</h1><p>When you request a vector quote it will appear here.</p></div>';
@@ -396,7 +386,6 @@
     var statusText = isReady ? 'Quote ready' : 'Waiting for quote';
     var deleteBtn = !isBanner ? '<button onclick="window.deleteQuote(this.dataset.qnum)" data-qnum="' + quoteNum + '" style="background:none;border:none;cursor:pointer;color:#c4b89a;font-size:18px;padding:0 4px;" title="Delete quote" onclick="event.stopPropagation()">&#10005;</button>' : '';
 
-    // Header row — clickable to expand
     var detailId = 'quote-detail-' + (isBanner ? 'banner-' : '') + quoteNum;
     var headerHtml =
       '<div class="order-row" onclick="window.toggleQuoteById(\'' + detailId + '\')">' +
@@ -411,8 +400,6 @@
         '</div>' +
       '</div>';
 
-    var detailId = 'quote-detail-' + (isBanner ? 'banner-' : '') + quoteNum;
-    // Detail area
     var detailHtml = '<div class="order-detail" id="' + detailId + '" style="display:none;">';
     detailHtml += '<div class="grid">';
     group.forEach(function(q, i) {
@@ -453,7 +440,6 @@
     var label = card ? (card.dataset.label || 'Design') : 'Design';
     var subtaskId = card ? (card.dataset.subtask || '') : '';
 
-    // Look up file row by subtask_id first, then fall back to fid
     var fileQuery = subtaskId
       ? SUPABASE_URL + '/rest/v1/files?clickup_subtask_id=eq.' + subtaskId + '&limit=1'
       : SUPABASE_URL + '/rest/v1/files?id=eq.' + fid + '&limit=1';
@@ -463,9 +449,8 @@
     }).then(function(r){ return r.json(); }).then(function(fileRows) {
       var fileRow = fileRows && fileRows[0] ? fileRows[0] : null;
       var realFid = fileRow ? fileRow.id : fid;
-      var previewSrc = fileRow ? (fileRow.preview_url || '') : '';
+      var previewSrc = fileRow ? (fileRow.original_preview_url || fileRow.preview_url || '') : '';
 
-      // If no file row found, use the card's img src
       if (!previewSrc && card) {
         var img = card.querySelector('.file-thumb img');
         if (img) previewSrc = img.src;
@@ -488,7 +473,7 @@
           versionGroups[v.version].push(v);
         });
 
-        // Always ensure v1 exists with original preview
+        // Always ensure v1 exists with original preview for vector art
         if (!versionGroups[1]) {
           versionGroups[1] = [{
             version: 1,
@@ -496,9 +481,6 @@
             preview_url: previewSrc,
             uploaded_at: fileRow ? fileRow.created_at : null
           }];
-        } else {
-          // Override v1 preview with original for vector art
-          versionGroups[1].forEach(function(v){ if (!v.preview_url) v.preview_url = previewSrc; v.thumbSrc = previewSrc; });
         }
 
         var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
@@ -583,7 +565,6 @@
     });
   };
 
-
   window.toggleQuoteById = function(detailId) {
     var detail = document.getElementById(detailId);
     if (!detail) return;
@@ -595,7 +576,6 @@
   };
 
   window.openQuoteEdit = function(fid, subtaskId, label, ce) {
-    // Can be called with just fid (reads from card) or with all params
     if (!subtaskId) {
       var card = document.getElementById('qcard-' + fid) || document.querySelector('[data-fid="' + fid + '"]');
       if (!card) return;
@@ -653,9 +633,9 @@
     var _qactEl = document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
     if (_qactEl) _qactEl.innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
     var attachmentsPayload = ax.map(function(a){ return {name: a.name, url: a.url}; });
-    var supabaseInsert = fetch('https://smmvhozhzeemojqrazbl.supabase.co/rest/v1/edit_requests', {
+    var supabaseInsert = fetch(SUPABASE_URL + '/rest/v1/edit_requests', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us', 'Prefer': 'return=representation' },
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'return=representation' },
       body: JSON.stringify({ file_id: fid, customer_note: note, status: 'in_progress', attachments: attachmentsPayload })
     });
     var zapierNotify = fetch('/api/edit', {
@@ -752,13 +732,10 @@
     card.dataset.ce    = ce||'';
     card.dataset.fid   = f.id;
 
-    var isVectorArt = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
-
     var filesListHtml = '<div class="files-list">';
     f.current_files.forEach(function(cf, i){
       var fileLabel = f.current_files.length > 1 ? 'File ' + (i+1) : subLabel;
       var fileMeta = f.current_files.length > 1 ? subLabel : ('Version ' + cf.version);
-      // For vector art, always use original_preview_url for thumbnail
       var previewSrc = isVectorArt ? (f.original_preview_url || f.preview_url || cf.preview_url || '') : (cf.preview_url || '');
       var thumb = previewSrc ? '<img src="' + previewSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
       filesListHtml += '<div class="file-row">' +
@@ -1024,7 +1001,6 @@
           '<div class="vgroup-files">';
         filesAtV.forEach(function(v,i){
           var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
-          var isVecFile = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
           var thumbSrc = isVecFile ? (f.original_preview_url || f.preview_url || v.preview_url || '') : (v.preview_url || '');
           var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
           bodyHtml += '<div class="file-row">' +
