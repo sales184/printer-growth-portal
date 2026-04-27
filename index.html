@@ -229,7 +229,7 @@
         var orderIds = orders.map(function(o){ return o.shopify_order_id; });
         var orderIdFilter = 'shopify_order_id=in.(' + orderIds.join(',') + ')';
         Promise.all([
-          sq('files', 'select=*&' + orderIdFilter + '&order=clickup_subtask_id.asc'),
+          sq('files', 'select=*&' + orderIdFilter + '&order=base_name.asc'),
           sq('file_versions', 'select=*&order=version.asc'),
           sq('edit_requests', 'select=*&order=created_at.asc'),
           sq('quotes', 'select=id,subtask_id&customer_email=eq.' + encodeURIComponent(customer.email) + '&status=eq.paid').catch(function(){ return []; })
