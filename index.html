@@ -62,7 +62,7 @@
     .file-meta { font-size: 11px; color: #a89880; margin-top: 2px; }
     .file-dl { font-size: 11px; font-weight: 600; text-decoration: none; color: #00aeef; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #b3e5fa; flex-shrink: 0; }
     .file-dl:hover { background: #e6f7fd; }
-    .progress-notice, .waiting-notice { border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start; margin: 0 14px 10px; }
+    .progress-notice, .waiting-notice, .ready-notice { border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start; margin: 0 14px 10px; }
     .progress-notice { background: #e6f7fd; border: 1px solid #b3e5fa; }
     .ready-notice { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .waiting-notice { background: #f5f0e8; border: 1px solid #e8e2d8; }
@@ -632,12 +632,13 @@
   };
 
   window.sendQuoteEdit = function(fid, subtaskId, label, ce) {
-    var note = document.getElementById('qnote-' + fid).value.trim();
+    var _qactEl = _attachments[fid + '__el'] || document.getElementById('qact-q-' + fid);
+    var noteEl = _qactEl ? _qactEl.querySelector('textarea') : document.getElementById('qnote-' + fid);
+    var note = noteEl ? noteEl.value.trim() : '';
     if (!note) return;
     var ax = (_attachments[fid] || []).filter(function(a){ return a && a.url; });
     var stillUploading = (_attachments[fid] || []).some(function(a){ return a && a.uploading; });
     if (stillUploading) { alert('Please wait for attachments to finish uploading.'); return; }
-    var _qactEl = _attachments[fid + '__el'] || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
     if (_qactEl) _qactEl.innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
     var attachmentsPayload = ax.map(function(a){ return {name: a.name, url: a.url}; });
     var supabaseInsert = fetch(SUPABASE_URL + '/rest/v1/edit_requests', {
@@ -653,9 +654,10 @@
     Promise.all([supabaseInsert, zapierNotify]).then(function(results) {
       if (!results[0].ok) throw new Error('Insert failed');
       delete _attachments[fid];
-      (_qactEl || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid)).innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' + (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em,this)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
+      delete _attachments[fid + '__el'];
+      if (_qactEl) _qactEl.innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' + (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em,this)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
     }).catch(function() {
-      (_qactEl || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid)).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
+      if (_qactEl) _qactEl.innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
     });
   };
 
