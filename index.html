@@ -147,6 +147,10 @@
     .btn-pay { background: #00aeef; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
     .btn-pay:hover { background: #0099d4; }
     .quote-card.quote-banner { background: #f5f0e8; border-color: #e8e2d8; margin-bottom: 24px; }
+    .quote-banner-card { background: #fffbeb; border: 2px solid #f59e0b; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+    .quote-banner-card:hover { box-shadow: 0 4px 16px rgba(245,158,11,0.15); }
+    .quote-banner-label { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: #b45309; font-family: monospace; text-transform: uppercase; margin-bottom: 12px; }
+    .quote-banner-dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
     .pulse { display: inline-block; border-radius: 50%; animation: pulse 1.5s infinite; }
   </style>
@@ -306,12 +310,15 @@
 
     var bannerArea = document.getElementById('quote-banner-area');
     if (quoteGroupOrder.length) {
+      var bannerWrapper = document.createElement('div');
+      bannerWrapper.className = 'quote-banner-card';
       var bannerLabel = document.createElement('div');
-      bannerLabel.style.cssText = 'font-size:11px;font-weight:700;letter-spacing:1.5px;color:#a89880;font-family:monospace;text-transform:uppercase;margin-bottom:8px;';
-      bannerLabel.textContent = '— Most Recent Quote —';
-      bannerArea.appendChild(bannerLabel);
+      bannerLabel.className = 'quote-banner-label';
+      bannerLabel.innerHTML = '<span class="quote-banner-dot"></span> Quote Awaiting Action';
+      bannerWrapper.appendChild(bannerLabel);
       var bannerCard = buildQuoteGroupCard(quoteGroups[quoteGroupOrder[0]], true);
-      bannerArea.appendChild(bannerCard);
+      bannerWrapper.appendChild(bannerCard);
+      bannerArea.appendChild(bannerWrapper);
       setTimeout(function(){
         var d = document.getElementById('quote-detail-banner-' + quoteGroupOrder[0]);
         if (d) d.style.display = 'block';
