@@ -435,7 +435,10 @@
       detailHtml += '</div>';
       var qNoticeLabel = q.status === 'quote_ready' ? 'QUOTE READY — AWAITING PAYMENT' : 'AWAITING QUOTE';
       var qNoticeText = q.status === 'quote_ready' ? 'Your quote is ready. Please make payment to start your order.' : 'This is your uploaded file. We\'ll send you an invoice when your quote is ready.';
-      detailHtml += '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">' + qNoticeLabel + '</div><div class="waiting-text">' + qNoticeText + '</div></div></div>';
+      var qNoticeClass = q.status === 'quote_ready' ? 'progress-notice' : 'waiting-notice';
+      var qNoticeLabelClass = q.status === 'quote_ready' ? 'progress-label' : 'waiting-label';
+      var qNoticeTextClass = q.status === 'quote_ready' ? 'progress-text' : 'waiting-text';
+      detailHtml += '<div class="' + qNoticeClass + '"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="' + qNoticeLabelClass + '">' + qNoticeLabel + '</div><div class="' + qNoticeTextClass + '">' + qNoticeText + '</div></div></div>';
       detailHtml += '<div class="actions" id="qact-q-' + fid + '">';
       detailHtml += '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>';
       if (subtaskId) {
@@ -984,7 +987,6 @@
       if (!versionGroups[v.version]) versionGroups[v.version] = [];
       versionGroups[v.version].push(v);
     });
-    // For vector art, always inject v1 from original_preview_url if not already in file_versions
     if (isVecFile) {
       var origPreview = f.original_preview_url || f.preview_url || '';
       if (origPreview && !versionGroups[1]) {
@@ -998,81 +1000,85 @@
     }
     var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
 
-    var timeline = [];
-    versionNums.forEach(function(vn){
-      var filesAtV = versionGroups[vn];
-      var ts = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).getTime() : 0;
-      timeline.push({ type: 'version', vn: vn, filesAtV: filesAtV, ts: ts });
-    });
-    f.edit_requests.forEach(function(r){
-      var ts = r.created_at ? new Date(r.created_at).getTime() : 0;
-      timeline.push({ type: 'request', data: r, ts: ts });
-    });
-    timeline.sort(function(a,b){ return a.ts - b.ts; });
+    fetch(SUPABASE_URL + '/rest/v1/edit_requests?file_id=eq.' + fid + '&order=created_at.asc', {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+    }).then(function(r){ return r.json(); }).then(function(freshRequests) {
+      var timeline = [];
+      versionNums.forEach(function(vn){
+        var filesAtV = versionGroups[vn];
+        var ts = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).getTime() : 0;
+        timeline.push({ type: 'version', vn: vn, filesAtV: filesAtV, ts: ts });
+      });
+      freshRequests.forEach(function(r){
+        var ts = r.created_at ? new Date(r.created_at).getTime() : 0;
+        timeline.push({ type: 'request', data: r, ts: ts });
+      });
+      timeline.sort(function(a,b){ return a.ts - b.ts; });
 
-    var bodyHtml = '';
-    timeline.forEach(function(item){
-      if (item.type === 'version') {
-        var vn = item.vn;
-        var filesAtV = item.filesAtV;
-        var isCur = vn === f.latest_version;
-        var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-        bodyHtml += '<div class="vgroup">' +
-          '<div class="vgroup-head">' +
-            '<div class="vgroup-num ' + (isCur?'current':'old') + '">v' + vn + '</div>' +
-            '<div class="vgroup-label">Version ' + vn + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
-            '<div class="vgroup-date">' + date + '</div>' +
-          '</div>' +
-          '<div class="vgroup-files">';
-        filesAtV.forEach(function(v,i){
-          var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
-          var thumbSrc = isVecFile ? (f.original_preview_url || f.preview_url || v.preview_url || '') : (v.preview_url || '');
-          var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
-          bodyHtml += '<div class="file-row">' +
-            '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' v' + vn + ' ' + fileLabel + '">' + thumb + '</div>' +
-            '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
-            '<a href="' + (v.download_url||'#') + '" class="file-dl" download target="_blank">&#11015; Download</a>' +
-          '</div>';
-        });
-        bodyHtml += '</div></div>';
-      } else {
-        var r = item.data;
-        var ip = r.status === 'in_progress';
-        var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-        var axHtml = '';
-        var atts = r.attachments;
-        if (typeof atts === 'string') { try { atts = JSON.parse(atts); } catch(e){ atts = []; } }
-        if (atts && atts.length) {
-          axHtml = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">' +
-            atts.map(function(a){
-              return '<a href="' + a.url + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border:1px solid #e8e2d8;border-radius:6px;font-size:11px;color:#3d3020;text-decoration:none;">' +
-                '<span style="color:#00aeef;">&#128206;</span>' +
-                '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.name || 'attachment') + '</span>' +
-                '<span style="color:#00aeef;font-weight:600;">View</span>' +
-              '</a>';
-            }).join('') +
-          '</div>';
+      var bodyHtml = '';
+      timeline.forEach(function(item){
+        if (item.type === 'version') {
+          var vn = item.vn;
+          var filesAtV = item.filesAtV;
+          var isCur = vn === f.latest_version;
+          var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+          bodyHtml += '<div class="vgroup">' +
+            '<div class="vgroup-head">' +
+              '<div class="vgroup-num ' + (isCur?'current':'old') + '">v' + vn + '</div>' +
+              '<div class="vgroup-label">Version ' + vn + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
+              '<div class="vgroup-date">' + date + '</div>' +
+            '</div>' +
+            '<div class="vgroup-files">';
+          filesAtV.forEach(function(v,i){
+            var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
+            var thumbSrc = isVecFile ? (f.original_preview_url || f.preview_url || v.preview_url || '') : (v.preview_url || '');
+            var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML='<div class=file-thumb-ph>&#128444;</div>'">' : '<div class="file-thumb-ph">&#128444;</div>';
+            bodyHtml += '<div class="file-row">' +
+              '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' v' + vn + ' ' + fileLabel + '">' + thumb + '</div>' +
+              '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
+              '<button class="file-dl" onclick="downloadFile('' + (v.download_url||'#') + '','design-file')">&#11015; Download</button>' +
+            '</div>';
+          });
+          bodyHtml += '</div></div>';
+        } else {
+          var r = item.data;
+          var ip = r.status === 'in_progress';
+          var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+          var axHtml = '';
+          var atts = r.attachments;
+          if (typeof atts === 'string') { try { atts = JSON.parse(atts); } catch(e){ atts = []; } }
+          if (atts && atts.length) {
+            axHtml = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">' +
+              atts.map(function(a){
+                return '<a href="' + a.url + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border:1px solid #e8e2d8;border-radius:6px;font-size:11px;color:#3d3020;text-decoration:none;">' +
+                  '<span style="color:#00aeef;">&#128206;</span>' +
+                  '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.name || 'attachment') + '</span>' +
+                  '<span style="color:#00aeef;font-weight:600;">View</span>' +
+                '</a>';
+              }).join('') +
+            '</div>';
+          }
+          bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
+            '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
+            (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
+            '</div><span class="req-date">' + rDate + '</span></div>' +
+            '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
+            axHtml +
+            '</div>';
         }
-        bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
-          '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
-          (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
-          '</div><span class="req-date">' + rDate + '</span></div>' +
-          '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
-          axHtml +
-          '</div>';
-      }
-    });
+      });
 
-    document.getElementById('drawer-root').innerHTML =
-      '<div class="overlay" onclick="closeDrawer()"><div class="drawer" onclick="event.stopPropagation()">' +
-      '<div class="drawer-head"><div><div class="drawer-title">' + label + ' &mdash; History</div>' +
-      '<div class="drawer-sub">' + versionNums.length + ' version' + (versionNums.length!==1?'s':'') + ' &middot; ' + f.edit_requests.length + ' request' + (f.edit_requests.length!==1?'s':'') + '</div></div>' +
-      '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
-      '<div class="drawer-body">' + bodyHtml + '</div></div></div>';
-    setTimeout(function(){
-      var body = document.querySelector('.drawer-body');
-      if (body) body.scrollTop = body.scrollHeight;
-    }, 50);
+      document.getElementById('drawer-root').innerHTML =
+        '<div class="overlay" onclick="closeDrawer()"><div class="drawer" onclick="event.stopPropagation()">' +
+        '<div class="drawer-head"><div><div class="drawer-title">' + label + ' &mdash; History</div>' +
+        '<div class="drawer-sub">' + versionNums.length + ' version' + (versionNums.length!==1?'s':'') + ' &middot; ' + freshRequests.length + ' request' + (freshRequests.length!==1?'s':'') + '</div></div>' +
+        '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
+        '<div class="drawer-body">' + bodyHtml + '</div></div></div>';
+      setTimeout(function(){
+        var body = document.querySelector('.drawer-body');
+        if (body) body.scrollTop = body.scrollHeight;
+      }, 50);
+    });
   };
 
   window.toggleAllOrders = function() {
