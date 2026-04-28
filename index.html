@@ -68,17 +68,17 @@
     .progress-notice { background: #fefce8; border: 1px solid #fde047; }
     .delivered-notice { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .ready-notice { background: #f0fdf4; border: 1px solid #bbf7d0; }
-    .waiting-notice { background: #f5f0e8; border: 1px solid #e8e2d8; }
+    .waiting-notice { background: #fefce8; border: 1px solid #fde047; }
     .progress-label, .waiting-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
     .progress-label { color: #854d0e; }
     .delivered-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; color: #059669; }
     .delivered-text { font-size: 11px; margin-top: 2px; line-height: 1.4; color: #059669; }
     .ready-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; color: #059669; }
     .ready-text { font-size: 11px; margin-top: 2px; line-height: 1.4; color: #059669; }
-    .waiting-label { color: #7a6a55; }
+    .waiting-label { color: #854d0e; }
     .progress-text, .waiting-text { font-size: 11px; margin-top: 2px; line-height: 1.4; }
     .progress-text { color: #854d0e; }
-    .waiting-text { color: #7a6a55; }
+    .waiting-text { color: #854d0e; }
     .actions { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 6px; margin-top: auto; border-top: 1px solid #f0ece4; }
     .btn { width: 100%; padding: 9px 0; border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-align: center; border: none; text-decoration: none; display: block; }
     .btn-hist { background: transparent; border: 1.5px solid #e8e2d8; color: #7a6a55; }
@@ -299,6 +299,7 @@
     html += '<button class="tab-btn active" id="tab-btn-orders" onclick="window.switchTab(\'orders\')">Orders</button>';
     html += '<button class="tab-btn" id="tab-btn-quotes" onclick="window.switchTab(\'quotes\')">Quotes' + quoteBadge + '</button>';
     html += '</div>';
+    html += '<div style="display:flex;gap:8px;margin-bottom:12px;"><button onclick="window.expandAllOrders()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button><button onclick="window.collapseAllOrders()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9650; Collapse All</button></div>';
     html += '<div id="tab-orders"><div id="quote-banner-area"></div><div id="orders-list"></div></div>';
     html += '<div id="tab-quotes" style="display:none"><div id="quotes-list"></div></div>';
     document.getElementById('app-root').innerHTML = html;
@@ -1074,6 +1075,31 @@
       var body = document.querySelector('.drawer-body');
       if (body) body.scrollTop = body.scrollHeight;
     }, 50);
+  };
+
+  window.expandAllOrders = function() {
+    if (!_ordersCache) return;
+    _ordersCache.forEach(function(o) {
+      var card = document.getElementById('order-' + o.shopify_order_id);
+      var detail = document.getElementById('detail-' + o.shopify_order_id);
+      if (card && detail && card.dataset.expanded !== 'true') {
+        card.dataset.expanded = 'true';
+        detail.style.display = 'block';
+        renderOrderDetail(o.shopify_order_id);
+      }
+    });
+  };
+
+  window.collapseAllOrders = function() {
+    if (!_ordersCache) return;
+    _ordersCache.forEach(function(o) {
+      var card = document.getElementById('order-' + o.shopify_order_id);
+      var detail = document.getElementById('detail-' + o.shopify_order_id);
+      if (card && detail) {
+        card.dataset.expanded = 'false';
+        detail.style.display = 'none';
+      }
+    });
   };
 
   window.closeDrawer = function() { document.getElementById('drawer-root').innerHTML = ''; };
