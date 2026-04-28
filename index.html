@@ -44,7 +44,6 @@
     .card.inprogress { border-color: #00aeef; box-shadow: 0 0 0 3px #00aeef18; }
     .card.revised { border-color: #d1c5a5; }
     .card.original { border-color: #c4b89a; }
-    .card.delivered { border-color: #059669; box-shadow: 0 0 0 3px #05966918; background: #f0fdf4; }
     .card-header { padding: 12px 14px 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0ece4; gap: 10px; }
     .design-name { font-family: 'Lora', serif; font-weight: 700; font-size: 14px; color: #1a1208; line-height: 1.2; }
     .design-label { font-size: 10px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
@@ -746,7 +745,7 @@
                     : f.is_revised ? '<span class="card-status-badge revised">REVISED</span>'
                     : isAwaiting ? '<span class="card-status-badge original">ORIGINAL</span>' : '';
     var card = document.createElement('div');
-    card.className = 'card' + (inProg?' inprogress':(isDelivered?' delivered':(f.is_revised?' revised':(isAwaiting?' original':''))));
+    card.className = 'card' + (inProg && !isVectorArt?' inprogress':(f.is_revised?' revised':(isAwaiting?' original':'')));
     card.id = 'card-' + f.id;
     card.dataset.file  = JSON.stringify(f);
     card.dataset.label = label;
