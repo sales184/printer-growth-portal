@@ -301,7 +301,7 @@
     html += '</div>';
     html += '<div style="margin-bottom:12px;"><button id="toggle-all-btn" onclick="window.toggleAllOrders()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button></div>';
     html += '<div id="tab-orders"><div id="quote-banner-area"></div><div id="orders-list"></div></div>';
-    html += '<div id="tab-quotes" style="display:none"><div id="quotes-list"></div></div>';
+    html += '<div id="tab-quotes" style="display:none"><div style="margin-bottom:12px;"><button id="toggle-all-quotes-btn" onclick="window.toggleAllQuotes()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button></div><div id="quotes-list"></div></div>';
     document.getElementById('app-root').innerHTML = html;
 
     var quoteGroups = {};
@@ -1108,6 +1108,21 @@
           }
         });
       }
+      if (btn) { btn.dataset.state = 'expanded'; btn.innerHTML = '&#9650; Collapse All'; }
+    }
+  };
+
+  window.toggleAllQuotes = function() {
+    var btn = document.getElementById('toggle-all-quotes-btn');
+    var isExpanded = btn && btn.dataset.state === 'expanded';
+    var qlist = document.getElementById('quotes-list');
+    if (!qlist) return;
+    var details = qlist.querySelectorAll('.order-detail');
+    if (isExpanded) {
+      details.forEach(function(d){ d.style.display = 'none'; });
+      if (btn) { btn.dataset.state = 'collapsed'; btn.innerHTML = '&#9660; Expand All'; }
+    } else {
+      details.forEach(function(d){ d.style.display = 'block'; });
       if (btn) { btn.dataset.state = 'expanded'; btn.innerHTML = '&#9650; Collapse All'; }
     }
   };
