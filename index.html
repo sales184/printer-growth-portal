@@ -984,7 +984,6 @@
       if (!versionGroups[v.version]) versionGroups[v.version] = [];
       versionGroups[v.version].push(v);
     });
-    // For vector art, always inject v1 from original_preview_url if not already in file_versions
     if (isVecFile) {
       var origPreview = f.original_preview_url || f.preview_url || '';
       if (origPreview && !versionGroups[1]) {
@@ -998,13 +997,17 @@
     }
     var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
 
+    // Always fetch fresh edit_requests from Supabase
+    fetch(SUPABASE_URL + '/rest/v1/edit_requests?file_id=eq.' + fid + '&order=created_at.asc', {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+    }).then(function(r){ return r.json(); }).then(function(freshRequests) {
     var timeline = [];
     versionNums.forEach(function(vn){
       var filesAtV = versionGroups[vn];
       var ts = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).getTime() : 0;
       timeline.push({ type: 'version', vn: vn, filesAtV: filesAtV, ts: ts });
     });
-    f.edit_requests.forEach(function(r){
+    freshRequests.forEach(function(r){
       var ts = r.created_at ? new Date(r.created_at).getTime() : 0;
       timeline.push({ type: 'request', data: r, ts: ts });
     });
