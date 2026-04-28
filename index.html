@@ -299,7 +299,7 @@
     html += '<button class="tab-btn active" id="tab-btn-orders" onclick="window.switchTab(\'orders\')">Orders</button>';
     html += '<button class="tab-btn" id="tab-btn-quotes" onclick="window.switchTab(\'quotes\')">Quotes' + quoteBadge + '</button>';
     html += '</div>';
-    html += '<div style="display:flex;gap:8px;margin-bottom:12px;"><button onclick="window.expandAllOrders()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button><button onclick="window.collapseAllOrders()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9650; Collapse All</button></div>';
+    html += '<div style="margin-bottom:12px;"><button id="toggle-all-btn" onclick="window.toggleAllOrders()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button></div>';
     html += '<div id="tab-orders"><div id="quote-banner-area"></div><div id="orders-list"></div></div>';
     html += '<div id="tab-quotes" style="display:none"><div id="quotes-list"></div></div>';
     document.getElementById('app-root').innerHTML = html;
@@ -1077,29 +1077,39 @@
     }, 50);
   };
 
-  window.expandAllOrders = function() {
-    if (!_ordersCache) return;
-    _ordersCache.forEach(function(o) {
-      var card = document.getElementById('order-' + o.shopify_order_id);
-      var detail = document.getElementById('detail-' + o.shopify_order_id);
-      if (card && detail && card.dataset.expanded !== 'true') {
-        card.dataset.expanded = 'true';
-        detail.style.display = 'block';
-        renderOrderDetail(o.shopify_order_id);
+  window.toggleAllOrders = function() {
+    var btn = document.getElementById('toggle-all-btn');
+    var isExpanded = btn && btn.dataset.state === 'expanded';
+    if (isExpanded) {
+      // Collapse all orders
+      if (_ordersCache) {
+        _ordersCache.forEach(function(o) {
+          var card = document.getElementById('order-' + o.shopify_order_id);
+          var detail = document.getElementById('detail-' + o.shopify_order_id);
+          if (card && detail) { card.dataset.expanded = 'false'; detail.style.display = 'none'; }
+        });
       }
-    });
-  };
-
-  window.collapseAllOrders = function() {
-    if (!_ordersCache) return;
-    _ordersCache.forEach(function(o) {
-      var card = document.getElementById('order-' + o.shopify_order_id);
-      var detail = document.getElementById('detail-' + o.shopify_order_id);
-      if (card && detail) {
-        card.dataset.expanded = 'false';
-        detail.style.display = 'none';
+      // Collapse quote banner
+      var bannerArea = document.getElementById('quote-banner-area');
+      if (bannerArea) {
+        bannerArea.querySelectorAll('.order-detail').forEach(function(d){ d.style.display = 'none'; });
       }
-    });
+      if (btn) { btn.dataset.state = 'collapsed'; btn.innerHTML = '&#9660; Expand All'; }
+    } else {
+      // Expand all orders
+      if (_ordersCache) {
+        _ordersCache.forEach(function(o) {
+          var card = document.getElementById('order-' + o.shopify_order_id);
+          var detail = document.getElementById('detail-' + o.shopify_order_id);
+          if (card && detail && card.dataset.expanded !== 'true') {
+            card.dataset.expanded = 'true';
+            detail.style.display = 'block';
+            renderOrderDetail(o.shopify_order_id);
+          }
+        });
+      }
+      if (btn) { btn.dataset.state = 'expanded'; btn.innerHTML = '&#9650; Collapse All'; }
+    }
   };
 
   window.closeDrawer = function() { document.getElementById('drawer-root').innerHTML = ''; };
