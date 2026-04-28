@@ -44,7 +44,6 @@
     .card.inprogress { border-color: #00aeef; box-shadow: 0 0 0 3px #00aeef18; }
     .card.revised { border-color: #d1c5a5; }
     .card.original { border-color: #c4b89a; }
-    .card.delivered { border-color: #059669; box-shadow: 0 0 0 3px #05966918; background: #f0fdf4; }
     .card-header { padding: 12px 14px 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0ece4; gap: 10px; }
     .design-name { font-family: 'Lora', serif; font-weight: 700; font-size: 14px; color: #1a1208; line-height: 1.2; }
     .design-label { font-size: 10px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
@@ -65,19 +64,16 @@
     .file-dl { font-size: 11px; font-weight: 600; text-decoration: none; color: #00aeef; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #b3e5fa; flex-shrink: 0; cursor: pointer; font-family: 'DM Sans', sans-serif; }
     .file-dl:hover { background: #e6f7fd; }
     .progress-notice, .waiting-notice, .ready-notice { border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start; margin: 0 14px 10px; }
-    .progress-notice { background: #fefce8; border: 1px solid #fde047; }
-    .delivered-notice { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .progress-notice { background: #e6f7fd; border: 1px solid #b3e5fa; }
     .ready-notice { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .waiting-notice { background: #f5f0e8; border: 1px solid #e8e2d8; }
     .progress-label, .waiting-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
-    .progress-label { color: #854d0e; }
-    .delivered-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; color: #059669; }
-    .delivered-text { font-size: 11px; margin-top: 2px; line-height: 1.4; color: #059669; }
+    .progress-label { color: #005577; }
     .ready-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; color: #059669; }
     .ready-text { font-size: 11px; margin-top: 2px; line-height: 1.4; color: #059669; }
     .waiting-label { color: #7a6a55; }
     .progress-text, .waiting-text { font-size: 11px; margin-top: 2px; line-height: 1.4; }
-    .progress-text { color: #854d0e; }
+    .progress-text { color: #0088bb; }
     .waiting-text { color: #7a6a55; }
     .actions { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 6px; margin-top: auto; border-top: 1px solid #f0ece4; }
     .btn { width: 100%; padding: 9px 0; border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-align: center; border: none; text-decoration: none; display: block; }
@@ -430,7 +426,7 @@
         detailHtml += '<img src="' + q.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">';
         detailHtml += '</div>';
         detailHtml += '<div class="file-info"><div class="file-label">Original upload</div><div class="file-meta">Submitted file</div></div>';
-        detailHtml += '<a href="' + q.preview_url + '" class="file-dl" download target="_blank">&#11015; Download</a>';
+        detailHtml += '<button class="file-dl" onclick="downloadFile(\'' + q.preview_url + '\',\'design-file\')" >&#11015; Download</button>';
         detailHtml += '</div>';
       }
       detailHtml += '</div>';
@@ -537,7 +533,7 @@
               bodyHtml += '<div class="file-row">' +
                 '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' v' + vn + '">' + thumb + '</div>' +
                 '<div class="file-info"><div class="file-label">' + (vn === 1 ? 'Original upload' : fileLabel) + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
-                '<a href="' + dlUrl + '" class="file-dl" download target="_blank">&#11015; Download</a>' +
+                '<button class="file-dl" onclick="downloadFile(\'' + dlUrl + '\',\'design-file\')" >&#11015; Download</button>' +
               '</div>';
             });
             bodyHtml += '</div></div>';
@@ -739,14 +735,14 @@
     var isDelivered = f.revision_status === 'delivered';
     var isAwaiting  = !isDelivered && !inProg;
     var isVectorArt = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
-    var hasHistory = true;
+    var hasHistory = f.all_versions.length > 1 || f.edit_requests.length > 0 || isVectorArt;
     var label      = 'Design ' + (idx+1);
     var subLabel   = isAwaiting ? 'Original upload' : (f.is_revised ? 'Latest revision' : 'Final artwork');
     var statusBadge = inProg ? '<span class="card-status-badge progress">IN PROGRESS</span>'
                     : f.is_revised ? '<span class="card-status-badge revised">REVISED</span>'
                     : isAwaiting ? '<span class="card-status-badge original">ORIGINAL</span>' : '';
     var card = document.createElement('div');
-    card.className = 'card' + (inProg?' inprogress':(isDelivered?' delivered':(f.is_revised?' revised':(isAwaiting?' original':''))));
+    card.className = 'card' + (inProg?' inprogress':(f.is_revised?' revised':(isAwaiting?' original':'')));
     card.id = 'card-' + f.id;
     card.dataset.file  = JSON.stringify(f);
     card.dataset.label = label;
@@ -762,7 +758,7 @@
       filesListHtml += '<div class="file-row">' +
         '<div class="file-thumb" onclick="viewImg(\'' + (previewSrc||'') + '\',\'' + label + ' \u2014 ' + fileLabel + '\')">' + thumb + '</div>' +
         '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">' + fileMeta + '</div></div>' +
-        '<a href="' + (cf.download_url||'#') + '" class="file-dl" download target="_blank">&#11015; Download</a>' +
+        '<button class="file-dl" onclick="downloadFile(\'' + (cf.download_url||'#') + '\',\'design-file\')" >&#11015; Download</button>' +
       '</div>';
     });
     filesListHtml += '</div>';
@@ -788,20 +784,16 @@
         noticeLabel = 'IN PROGRESS';
         noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
       }
-    } else if (isDelivered) {
-      noticeClass = 'delivered-notice';
-      noticeLabel = 'DELIVERED';
-      noticeText = 'Your artwork has been delivered.';
     } else if (inProg) {
       noticeClass = 'progress-notice';
       noticeLabel = 'REVISION IN PROGRESS';
       noticeText = 'Your edit request is being worked on. We\'ll email you when finished.';
     } else if (isAwaiting) {
-      noticeClass = 'progress-notice';
-      noticeLabel = 'IN PROGRESS';
+      noticeClass = 'waiting-notice';
+      noticeLabel = 'ORIGINAL DESIGN';
       noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
     }
-    var notice = noticeText ? '<div class="' + noticeClass + '"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="' + (noticeClass === 'ready-notice' || noticeClass === 'delivered-notice' ? (noticeClass === 'ready-notice' ? 'ready-label' : 'delivered-label') : noticeClass === 'progress-notice' ? 'progress-label' : 'waiting-label') + '">' + noticeLabel + '</div><div class="' + (noticeClass === 'ready-notice' || noticeClass === 'delivered-notice' ? (noticeClass === 'ready-notice' ? 'ready-text' : 'delivered-text') : noticeClass === 'progress-notice' ? 'progress-text' : 'waiting-text') + '">' + noticeText + '</div></div></div>' : '';
+    var notice = noticeText ? '<div class="' + noticeClass + '"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="' + (noticeClass === 'ready-notice' ? 'ready-label' : noticeClass === 'progress-notice' ? 'progress-label' : 'waiting-label') + '">' + noticeLabel + '</div><div class="' + (noticeClass === 'ready-notice' ? 'ready-text' : noticeClass === 'progress-notice' ? 'progress-text' : 'waiting-text') + '">' + noticeText + '</div></div></div>' : '';
 
     var serviceLabel = f.service_type ? '<div class="design-service">' + f.service_type + '</div>' : '';
     var fileNameLabel = f.original_file_name ? '<div class="design-filename" title="' + f.original_file_name + '">' + f.original_file_name + '</div>' : '';
@@ -1032,7 +1024,7 @@
           bodyHtml += '<div class="file-row">' +
             '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' v' + vn + ' ' + fileLabel + '">' + thumb + '</div>' +
             '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">Version ' + vn + '</div></div>' +
-            '<a href="' + (v.download_url||'#') + '" class="file-dl" download target="_blank">&#11015; Download</a>' +
+            '<button class="file-dl" onclick="downloadFile(\'' + (v.download_url||'#') + '\',\'design-file\')" >&#11015; Download</button>' +
           '</div>';
         });
         bodyHtml += '</div></div>';
