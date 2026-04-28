@@ -299,8 +299,7 @@
     html += '<button class="tab-btn active" id="tab-btn-orders" onclick="window.switchTab(\'orders\')">Orders</button>';
     html += '<button class="tab-btn" id="tab-btn-quotes" onclick="window.switchTab(\'quotes\')">Quotes' + quoteBadge + '</button>';
     html += '</div>';
-    html += '<div style="margin-bottom:12px;"><button id="toggle-all-btn" onclick="window.toggleAllOrders()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button></div>';
-    html += '<div id="tab-orders"><div id="quote-banner-area"></div><div id="orders-list"></div></div>';
+    html += '<div id="tab-orders"><div style="margin-bottom:12px;"><button id="toggle-all-btn" onclick="window.toggleAllOrders()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button></div><div id="quote-banner-area"></div><div id="orders-list"></div></div>';
     html += '<div id="tab-quotes" style="display:none"><div style="margin-bottom:12px;"><button id="toggle-all-quotes-btn" onclick="window.toggleAllQuotes()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button></div><div id="quotes-list"></div></div>';
     document.getElementById('app-root').innerHTML = html;
 
