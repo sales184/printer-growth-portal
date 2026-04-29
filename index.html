@@ -739,9 +739,7 @@
     var hasHistory = true;
     var label      = 'Design ' + (idx+1);
     var subLabel   = isAwaiting ? 'Original upload' : (f.is_revised ? 'Latest revision' : 'Final artwork');
-    var statusBadge = inProg ? '<span class="card-status-badge progress">IN PROGRESS</span>'
-                    : f.is_revised ? '<span class="card-status-badge revised">REVISED</span>'
-                    : isAwaiting ? '<span class="card-status-badge original">ORIGINAL</span>' : '';
+    var statusBadge = f.is_revised ? '<span class="card-status-badge revised">REVISED</span>' : '';
     var card = document.createElement('div');
     card.className = 'card' + (inProg && !isVectorArt?' inprogress':(f.is_revised?' revised':(isAwaiting?' original':'')));
     card.id = 'card-' + f.id;
@@ -1017,7 +1015,7 @@
         bodyHtml += '<div class="vgroup">' +
           '<div class="vgroup-head">' +
             '<div class="vgroup-num ' + (isCur?'current':'old') + '">' + (vn === 1 ? 'Orig' : 'v' + (vn - 1)) + '</div>' +
-            '<div class="vgroup-label">' + (vn === 1 ? 'Original File' : 'Version ' + (vn - 1)) + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
+            '<div class="vgroup-label">' + (vn === 1 ? 'Original File' : 'Version ' + (vn - 1)) + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + (vn === 1 && isVecFile && f.original_file_name ? '<div style="font-size:10px;color:#a89880;font-weight:400;margin-top:2px;">' + f.original_file_name + '</div>' : '') + '</div>' +
             '<div class="vgroup-date">' + date + '</div>' +
           '</div>' +
           '<div class="vgroup-files">';
