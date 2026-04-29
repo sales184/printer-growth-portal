@@ -534,7 +534,7 @@
               bodyHtml += '<div class="file-row">' +
                 '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' ' + (vn === 1 ? 'Original' : 'v' + (vn-1)) + '">' + thumb + '</div>' +
                 '<div class="file-info"><div class="file-label">' + (vn === 1 ? '' : fileLabel) + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
-                '<a href="' + dlUrl + '" class="file-dl" target="_blank">&#11015; Download</a>' +
+                '<button class="file-dl" onclick="window.downloadFile(\'' + dlUrl + '\')" >&#11015; Download</button>' +
               '</div>';
             });
             bodyHtml += '</div></div>';
@@ -1026,7 +1026,7 @@
           bodyHtml += '<div class="file-row">' +
             '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' ' + (vn === 1 ? 'Original' : 'v' + (vn-1)) + ' ' + fileLabel + '">' + thumb + '</div>' +
             '<div class="file-info"><div class="file-label">' + (vn === 1 ? (f.original_file_name || 'Original upload') : fileLabel) + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
-            '<a href="' + (v.download_url||'#') + '" class="file-dl" target="_blank">&#11015; Download</a>' +
+            '<button class="file-dl" onclick="window.downloadFile(\'' + (v.download_url||'#') + '\')" >&#11015; Download</button>' +
           '</div>';
         });
         bodyHtml += '</div></div>';
@@ -1131,12 +1131,23 @@
   window.closeViewer = function() { document.getElementById('viewer-root').innerHTML = ''; };
 
   window.downloadFile = function(url, filename) {
-    fetch(url)
-      .then(function(r){ return r.blob(); })
+    if (!url || url === '#') return;
+    if (!filename || filename === 'design-file') {
+      var parts = url.split('/');
+      var last = decodeURIComponent(parts[parts.length - 1]).split('?')[0];
+      filename = last || 'download';
+    }
+    fetch(url, {
+      headers: { 'Authorization': 'Bearer ' + SUPABASE_ANON, 'apikey': SUPABASE_ANON }
+    })
+      .then(function(r){
+        if (!r.ok) throw new Error('fetch failed');
+        return r.blob();
+      })
       .then(function(blob){
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = filename || 'download';
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
