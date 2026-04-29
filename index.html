@@ -759,7 +759,7 @@
       filesListHtml += '<div class="file-row">' +
         '<div class="file-thumb" onclick="viewImg(\'' + (previewSrc||'') + '\',\'' + label + ' \u2014 ' + fileLabel + '\')">' + thumb + '</div>' +
         '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">' + fileMeta + '</div></div>' +
-        (f.latest_version > 1 ? '<a href="' + (cf.download_url||'#') + '" class="file-dl" download target="_blank">&#11015; Download</a>' : '<button class="file-dl" onclick="openHistory(\'' + f.id + '\')">&#128065; View</button>') +
+        (f.latest_version > 1 ? '<a href="' + (cf.download_url||'#') + '" class="file-dl" download target="_blank">&#11015; Download</a>' : '') +
       '</div>';
     });
     filesListHtml += '</div>';
