@@ -420,7 +420,7 @@
     group.forEach(function(q, i) {
       var fid = q.id;
       var subtaskId = q.subtask_id || '';
-      detailHtml += '<div class="card original" id="qcard-' + fid + '" data-fid="' + fid + '" data-subtask="' + subtaskId + '" data-email="' + (q.customer_email||'') + '" data-label="Design ' + (i+1) + '">';
+      detailHtml += '<div class="card original" id="qcard-' + fid + '" data-fid="' + fid + '" data-subtask="' + subtaskId + '" data-email="' + (q.customer_email||'') + '" data-label="Design ' + (i+1) + '" data-preview="' + (q.preview_url||'') + '">';
       detailHtml += '<div class="card-header"><div><div class="design-name">Design ' + (i+1) + '</div><div class="design-service">VECTOR ART</div>' + (q.original_file_name ? '<div class="design-filename" title="' + q.original_file_name + '">' + q.original_file_name + '</div>' : '') + '</div></div>';
       detailHtml += '<div class="files-list">';
       if (q.preview_url) {
@@ -470,6 +470,13 @@
         var img = card.querySelector('.file-thumb img');
         if (img) previewSrc = img.src;
       }
+      // Also try the data-src attribute directly (quotes store preview_url here)
+      if (!previewSrc && card) {
+        var thumb = card.querySelector('.file-thumb');
+        if (thumb && thumb.dataset.src) previewSrc = thumb.dataset.src;
+      }
+      // Final fallback: use preview_url stored directly on the card
+      if (!previewSrc && card && card.dataset.preview) previewSrc = card.dataset.preview;
 
       Promise.all([
         fetch(SUPABASE_URL + '/rest/v1/file_versions?file_id=eq.' + realFid + '&order=version.asc', {
