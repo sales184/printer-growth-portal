@@ -534,7 +534,7 @@
               bodyHtml += '<div class="file-row">' +
                 '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' ' + (vn === 1 ? 'Original' : 'v' + (vn-1)) + '">' + thumb + '</div>' +
                 '<div class="file-info"><div class="file-label">' + (vn === 1 ? '' : fileLabel) + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
-                '<button class="file-dl" onclick="window.downloadFile(\'' + dlUrl + '\')" >&#11015; Download</button>' +
+                '<button class="file-dl" data-url="' + dlUrl + '" onclick="window.downloadFile(this.dataset.url)">&#11015; Download</button>' +
               '</div>';
             });
             bodyHtml += '</div></div>';
@@ -1026,7 +1026,7 @@
           bodyHtml += '<div class="file-row">' +
             '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' ' + (vn === 1 ? 'Original' : 'v' + (vn-1)) + ' ' + fileLabel + '">' + thumb + '</div>' +
             '<div class="file-info"><div class="file-label">' + (vn === 1 ? (f.original_file_name || 'Original upload') : fileLabel) + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
-            '<button class="file-dl" onclick="window.downloadFile(\'' + (v.download_url||'#') + '\')" >&#11015; Download</button>' +
+            '<button class="file-dl" data-url="' + (v.download_url||'#') + '" onclick="window.downloadFile(this.dataset.url)">&#11015; Download</button>' +
           '</div>';
         });
         bodyHtml += '</div></div>';
