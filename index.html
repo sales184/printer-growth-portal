@@ -822,7 +822,7 @@
       filesListHtml +
       notice +
       '<div class="actions" id="act-' + f.id + '">' +
-      (hasHistory ? '<button class="btn btn-hist" onclick="openHistory(\'' + f.id + '\')">&#128339; History (' + f.latest_version + 'v &middot; ' + f.edit_requests.length + ' req)</button>' : '') +
+      (hasHistory ? '<button class="btn btn-hist" onclick="openHistory(\'' + f.id + '\')">&#128339; History (' + (f.latest_version - 1) + 'v &middot; ' + f.edit_requests.length + ' req)</button>' : '') +
       ((inProg && !isVectorArt) ? '<button class="btn btn-pend" disabled>&#9999; Revision Already Pending</button>'
               : '<button class="btn btn-edit" onclick="openEditFromCard(\'' + f.id + '\')">&#9999; Request Edit</button>') +
       '</div>';
