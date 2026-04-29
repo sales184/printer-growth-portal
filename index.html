@@ -533,7 +533,7 @@
               var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
               bodyHtml += '<div class="file-row">' +
                 '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' ' + (vn === 1 ? 'Original' : 'v' + (vn-1)) + '">' + thumb + '</div>' +
-                '<div class="file-info"><div class="file-label">' + (vn === 1 ? 'Original upload' : fileLabel) + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
+                '<div class="file-info"><div class="file-label">' + (vn === 1 ? (fileRow && fileRow.original_file_name ? fileRow.original_file_name : 'Original upload') : fileLabel) + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
                 '<a href="' + dlUrl + '" class="file-dl" download target="_blank">&#11015; Download</a>' +
               '</div>';
             });
@@ -1025,7 +1025,7 @@
           var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
           bodyHtml += '<div class="file-row">' +
             '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' ' + (vn === 1 ? 'Original' : 'v' + (vn-1)) + ' ' + fileLabel + '">' + thumb + '</div>' +
-            '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
+            '<div class="file-info"><div class="file-label">' + (vn === 1 && f.original_file_name ? f.original_file_name : fileLabel) + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
             '<a href="' + (v.download_url||'#') + '" class="file-dl" download target="_blank">&#11015; Download</a>' +
           '</div>';
         });
