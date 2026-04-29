@@ -1137,30 +1137,15 @@
 
   window.closeViewer = function() { document.getElementById('viewer-root').innerHTML = ''; };
 
-  window.downloadFile = function(url, filename) {
+  window.downloadFile = function(url) {
     if (!url || url === '#') return;
-    if (!filename || filename === 'design-file') {
-      var parts = url.split('/');
-      var last = decodeURIComponent(parts[parts.length - 1]).split('?')[0];
-      filename = last || 'download';
-    }
-    fetch(url, {
-      headers: { 'Authorization': 'Bearer ' + SUPABASE_ANON, 'apikey': SUPABASE_ANON }
-    })
-      .then(function(r){
-        if (!r.ok) throw new Error('fetch failed');
-        return r.blob();
-      })
-      .then(function(blob){
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
-      })
-      .catch(function(){ window.open(url, '_blank'); });
+    var dlUrl = url + (url.indexOf('?') === -1 ? '?download=' : '&download=');
+    var a = document.createElement('a');
+    a.href = dlUrl;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   function renderNoOrders(customer) {
