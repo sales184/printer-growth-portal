@@ -802,7 +802,7 @@
     var fileNameLabel = f.original_file_name ? '<div class="design-filename" title="' + f.original_file_name + '">' + f.original_file_name + '</div>' : '';
 
     card.innerHTML =
-      '<div class="card-header"><div><div class="design-name">' + label + '</div>' + serviceLabel + fileNameLabel + (subLabel !== 'Final artwork' ? '<div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div>' : '') + '</div>' + statusBadge + '</div>' +
+      '<div class="card-header"><div><div class="design-name">' + label + '</div>' + serviceLabel + fileNameLabel + (subLabel !== 'Final artwork' && subLabel !== 'Original upload' ? '<div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div>' : '') + '</div>' + statusBadge + '</div>' +
       filesListHtml +
       notice +
       '<div class="actions" id="act-' + f.id + '">' +
