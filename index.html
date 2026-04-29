@@ -156,9 +156,6 @@
     .quote-banner-dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
     .pulse { display: inline-block; border-radius: 50%; animation: pulse 1.5s infinite; }
-    .revising-notice { background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start; margin: 0 14px 10px; }
-    .revising-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; color: #c2410c; }
-    .revising-text { font-size: 11px; margin-top: 2px; line-height: 1.4; color: #c2410c; }
   </style>
 </head>
 <body>
@@ -698,11 +695,10 @@
     card.id = 'order-' + order.shopify_order_id;
     card.dataset.expanded = 'false';
     var filesCount = order.files.length;
-    var inProg  = order.files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'in_progress'; }).length;
-    var delivered = order.files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'delivered'; }).length;
+    var inProg  = order.files.filter(function(f){ return f.revision_status === 'in_progress'; }).length;
+    var delivered = order.files.filter(function(f){ return f.revision_status === 'delivered'; }).length;
     var orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-    var revising = order.files.filter(function(f){ return f.edit_requests && f.edit_requests.some(function(r){ return r.status === 'in_progress'; }); }).length;
-    var status = revising ? 'Revising artwork' : (inProg ? 'In progress' : (delivered === filesCount && filesCount > 0 ? 'Ready' : 'Awaiting artwork'));
+    var status = inProg ? 'In progress' : (delivered === filesCount && filesCount > 0 ? 'Ready' : 'Awaiting artwork');
     card.innerHTML =
       '<div class="order-row" onclick="toggleOrder(\'' + order.shopify_order_id + '\')">' +
         '<div class="order-info"><div class="order-num">Order #' + order.shopify_order_number + '</div>' +
@@ -731,9 +727,9 @@
     if (!order) return;
     var detail = document.getElementById('detail-' + orderId);
     var files = order.files;
-    var inProg  = files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'in_progress'; }).length;
-    var revised = files.filter(function(f){ return f.is_revised && (f.revision_status || '').toLowerCase() === 'delivered'; }).length;
-    var waiting = files.filter(function(f){ return (f.revision_status || '').toLowerCase() !== 'delivered' && (f.revision_status || '').toLowerCase() !== 'in_progress'; }).length;
+    var inProg  = files.filter(function(f){ return f.revision_status === 'in_progress'; }).length;
+    var revised = files.filter(function(f){ return f.is_revised && f.revision_status === 'delivered'; }).length;
+    var waiting = files.filter(function(f){ return f.revision_status !== 'delivered' && f.revision_status !== 'in_progress'; }).length;
     var html = '<div class="files-header"><div><div class="files-title">Your Artwork Files</div>';
     html += '<div class="files-subtitle">' + files.length + ' design' + (files.length!==1?'s':'');
     if (revised) html += ' &middot; ' + revised + ' revised';
@@ -751,8 +747,8 @@
   }
 
   function buildCard(f,idx,ce) {
-    var inProg     = (f.revision_status || '').toLowerCase() === 'in_progress';
-    var isDelivered = (f.revision_status || '').toLowerCase() === 'delivered';
+    var inProg     = f.revision_status === 'in_progress';
+    var isDelivered = f.revision_status === 'delivered';
     var isAwaiting  = !isDelivered && !inProg;
     var isVectorArt = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
     var hasHistory = true;
@@ -784,12 +780,7 @@
     var noticeText = '';
     var noticeLabel = '';
     var noticeClass = 'waiting-notice';
-    var isRevising = f.edit_requests && f.edit_requests.some(function(r){ return r.status === 'in_progress'; });
-    if (isRevising) {
-      noticeClass = 'revising-notice';
-      noticeLabel = 'ARTWORK BEING REVISED';
-      noticeText = 'Your edit request is being worked on. We\'ll email you when the new version is ready.';
-    } else if (isVectorArt) {
+    if (isVectorArt) {
       if (f.latest_version > 1) {
         noticeClass = 'ready-notice';
         noticeLabel = 'ARTWORK READY';
@@ -812,18 +803,15 @@
       noticeLabel = 'ARTWORK READY';
       noticeText = 'Here is your finished artwork.';
     } else if (inProg) {
-      noticeClass = 'waiting-notice';
-      noticeLabel = 'IN PROGRESS';
-      noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
+      noticeClass = 'progress-notice';
+      noticeLabel = 'REVISION IN PROGRESS';
+      noticeText = 'Your edit request is being worked on. We\'ll email you when finished.';
     } else {
       noticeClass = 'waiting-notice';
       noticeLabel = 'IN PROGRESS';
       noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
     }
-    var noticeLabelClass = noticeClass === 'ready-notice' ? 'ready-label' : noticeClass === 'revising-notice' ? 'revising-label' : noticeClass === 'progress-notice' ? 'progress-label' : 'waiting-label';
-    var noticeTextClass = noticeClass === 'ready-notice' ? 'ready-text' : noticeClass === 'revising-notice' ? 'revising-text' : noticeClass === 'progress-notice' ? 'progress-text' : 'waiting-text';
-    var noticeIcon = noticeClass === 'revising-notice' ? '&#9998;' : '&#128444;';
-    var notice = noticeText ? '<div class="' + noticeClass + '"><span style="font-size:14px;flex-shrink:0">' + noticeIcon + '</span><div><div class="' + noticeLabelClass + '">' + noticeLabel + '</div><div class="' + noticeTextClass + '">' + noticeText + '</div></div></div>' : '';
+    var notice = noticeText ? '<div class="' + noticeClass + '"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="' + (noticeClass === 'ready-notice' ? 'ready-label' : noticeClass === 'progress-notice' ? 'progress-label' : 'waiting-label') + '">' + noticeLabel + '</div><div class="' + (noticeClass === 'ready-notice' ? 'ready-text' : noticeClass === 'progress-notice' ? 'progress-text' : 'waiting-text') + '">' + noticeText + '</div></div></div>' : '';
 
     var serviceLabel = f.service_type ? '<div class="design-service">' + f.service_type + '</div>' : '';
     var fileNameLabel = f.original_file_name ? '<div class="design-filename" title="' + f.original_file_name + '">' + f.original_file_name + '</div>' : '';
