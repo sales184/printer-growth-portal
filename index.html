@@ -312,18 +312,26 @@
     quoteGroupOrder.sort(function(a, b) { return Number(b) - Number(a); });
 
     var bannerArea = document.getElementById('quote-banner-area');
-    if (quoteGroupOrder.length) {
+    var readyQuoteKey = null;
+    for (var qi = 0; qi < quoteGroupOrder.length; qi++) {
+      var qg = quoteGroups[quoteGroupOrder[qi]];
+      if (qg.some(function(q){ return q.status === 'quote_ready'; })) {
+        readyQuoteKey = quoteGroupOrder[qi];
+        break;
+      }
+    }
+    if (readyQuoteKey !== null) {
       var bannerWrapper = document.createElement('div');
       bannerWrapper.className = 'quote-banner-card';
       var bannerLabel = document.createElement('div');
       bannerLabel.className = 'quote-banner-label';
       bannerLabel.innerHTML = '<span class="quote-banner-dot"></span> Quote Awaiting Action';
       bannerWrapper.appendChild(bannerLabel);
-      var bannerCard = buildQuoteGroupCard(quoteGroups[quoteGroupOrder[0]], true);
+      var bannerCard = buildQuoteGroupCard(quoteGroups[readyQuoteKey], true);
       bannerWrapper.appendChild(bannerCard);
       bannerArea.appendChild(bannerWrapper);
       setTimeout(function(){
-        var d = document.getElementById('quote-detail-banner-' + quoteGroupOrder[0]);
+        var d = document.getElementById('quote-detail-banner-' + readyQuoteKey);
         if (d) d.style.display = 'block';
       }, 10);
     }
@@ -1142,7 +1150,7 @@
     var dlUrl = url + (url.indexOf('?') === -1 ? '?download=' : '&download=');
     var a = document.createElement('a');
     a.href = dlUrl;
-    a.target = '_blank';
+    a.download = '';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
