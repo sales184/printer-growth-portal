@@ -404,7 +404,7 @@
     var headerHtml =
       '<div class="order-row" onclick="window.toggleQuoteById(\'' + detailId + '\')">' +
         '<div class="order-info">' +
-          '<div class="order-num">Vector Quote' + (first.quote_number ? ' #' + first.quote_number : '') + (isBanner ? ' <span style="font-size:11px;color:#00aeef;font-family:monospace;font-weight:700;letter-spacing:1px;">ACTIVE</span>' : '') + '</div>' +
+          '<div class="order-num">Vector Quote' + (first.quote_number ? ' #' + first.quote_number : '') + '' + '</div>' +
           '<div class="order-sub">' + date + ' &middot; ' + group.length + ' design' + (group.length !== 1 ? 's' : '') + ' &middot; ' + statusText + '</div>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:8px;">' +
@@ -421,7 +421,7 @@
       var fid = q.id;
       var subtaskId = q.subtask_id || '';
       detailHtml += '<div class="card original" id="qcard-' + fid + '" data-fid="' + fid + '" data-subtask="' + subtaskId + '" data-email="' + (q.customer_email||'') + '" data-label="Design ' + (i+1) + '">';
-      detailHtml += '<div class="card-header"><div><div class="design-name">Design ' + (i+1) + '</div><div class="design-service">VECTOR ART</div>' + (q.original_file_name ? '<div class="design-filename" title="' + q.original_file_name + '">' + q.original_file_name + '</div>' : '') + '</div><span class="card-status-badge original">ORIGINAL</span></div>';
+      detailHtml += '<div class="card-header"><div><div class="design-name">Design ' + (i+1) + '</div><div class="design-service">VECTOR ART</div>' + (q.original_file_name ? '<div class="design-filename" title="' + q.original_file_name + '">' + q.original_file_name + '</div>' : '') + '</div></div>';
       detailHtml += '<div class="files-list">';
       if (q.preview_url) {
         detailHtml += '<div class="file-row">';
@@ -557,7 +557,7 @@
             }
             bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
               '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
-              (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
+              (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> EDIT REQUESTED' : 'EDIT REQUEST &middot; RESOLVED') +
               '</div><span class="req-date">' + rDate + '</span></div>' +
               '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
               axHtml + '</div>';
@@ -802,7 +802,7 @@
     var fileNameLabel = f.original_file_name ? '<div class="design-filename" title="' + f.original_file_name + '">' + f.original_file_name + '</div>' : '';
 
     card.innerHTML =
-      '<div class="card-header"><div><div class="design-name">' + label + '</div>' + serviceLabel + fileNameLabel + '<div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div></div>' + statusBadge + '</div>' +
+      '<div class="card-header"><div><div class="design-name">' + label + '</div>' + serviceLabel + fileNameLabel + (subLabel !== 'Final artwork' ? '<div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div>' : '') + '</div>' + statusBadge + '</div>' +
       filesListHtml +
       notice +
       '<div class="actions" id="act-' + f.id + '">' +
@@ -1020,12 +1020,12 @@
           '</div>' +
           '<div class="vgroup-files">';
         filesAtV.forEach(function(v,i){
-          var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
+          var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : '';
           var thumbSrc = isVecFile ? (f.original_preview_url || f.preview_url || v.preview_url || '') : (v.preview_url || '');
           var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
           bodyHtml += '<div class="file-row">' +
             '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' ' + (vn === 1 ? 'Original' : 'v' + (vn-1)) + ' ' + fileLabel + '">' + thumb + '</div>' +
-            '<div class="file-info"><div class="file-label">' + (vn === 1 && f.original_file_name ? f.original_file_name : fileLabel) + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
+            '<div class="file-info"><div class="file-label">' + (vn === 1 ? (f.original_file_name || 'Original upload') : fileLabel) + '</div><div class="file-meta">' + (vn === 1 ? 'Original file' : 'Version ' + (vn - 1)) + '</div></div>' +
             '<a href="' + (v.download_url||'#') + '" class="file-dl" download target="_blank">&#11015; Download</a>' +
           '</div>';
         });
@@ -1050,7 +1050,7 @@
         }
         bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
           '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
-          (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> IN PROGRESS' : 'EDIT REQUEST &middot; RESOLVED') +
+          (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> EDIT REQUESTED' : 'EDIT REQUEST &middot; RESOLVED') +
           '</div><span class="req-date">' + rDate + '</span></div>' +
           '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
           axHtml +
