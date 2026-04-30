@@ -1,1687 +1,1174 @@
-<div class="dt-wrap">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Files — Printer Growth</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f5f0e8; font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+    .nav { background: #fff; border-bottom: 1px solid #e8e2d8; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo { display: inline-flex; align-items: center; text-decoration: none; }
+    .nav-logo img { height: 36px; width: auto; display: block; }
+    .nav-login { font-size: 13px; color: #7a6a55; text-decoration: none; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 40px 24px; }
+    .customer-header { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .customer-eyebrow { color: #a89880; font-size: 12px; margin-bottom: 4px; }
+    .customer-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 700; color: #1a1208; }
+    .customer-meta { display: flex; gap: 16px; color: #7a6a55; font-size: 13px; margin-top: 10px; flex-wrap: wrap; }
+    .btn-order-more { background: #00aeef; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+    .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid #e8e2d8; }
+    .tab-btn { padding: 10px 24px; font-size: 14px; font-weight: 600; color: #a89880; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', sans-serif; transition: color 0.2s, border-color 0.2s; }
+    .tab-btn.active { color: #00aeef; border-bottom-color: #00aeef; }
+    .tab-badge { background: #00aeef; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 99px; margin-left: 6px; }
+    .order-card { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; transition: box-shadow 0.2s, border-color 0.2s; }
+    .order-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); border-color: #d1c5a5; }
+    .order-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; cursor: pointer; }
+    .order-info { flex: 1; min-width: 200px; }
+    .order-num { font-family: 'Lora', serif; font-size: 18px; font-weight: 700; color: #1a1208; }
+    .order-sub { font-size: 13px; color: #7a6a55; margin-top: 4px; }
+    .order-chev { color: #a89880; font-size: 16px; }
+    .order-detail { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f0ece4; }
+    .files-title { font-family: 'Lora', serif; font-size: 16px; font-weight: 700; color: #1a1208; }
+    .files-subtitle { font-size: 13px; color: #a89880; margin-top: 4px; }
+    .files-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .files-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge { display: flex; align-items: center; gap: 6px; border-radius: 99px; padding: 5px 12px; font-size: 11px; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
+    .badge-progress { background: #e6f7fd; border: 1px solid #b3e5fa; color: #005577; }
+    .badge-revised { background: #f0fdf4; border: 1px solid #bbf7d0; color: #059669; }
+    .badge-waiting { background: #f5f0e8; border: 1px solid #e8e2d8; color: #7a6a55; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .card { background: #fffdf8; border: 1.5px solid #e8e2d8; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s; }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+    .card.inprogress { border-color: #00aeef; box-shadow: 0 0 0 3px #00aeef18; }
+    .card.revised { border-color: #d1c5a5; }
+    .card.original { border-color: #c4b89a; }
+    .card-header { padding: 12px 14px 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0ece4; gap: 10px; }
+    .design-name { font-family: 'Lora', serif; font-weight: 700; font-size: 14px; color: #1a1208; line-height: 1.2; }
+    .design-label { font-size: 10px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .design-service { font-size: 10px; color: #00aeef; font-weight: 700; letter-spacing: 0.5px; margin-top: 1px; text-transform: uppercase; font-family: monospace; }
+    .design-filename { font-size: 10px; color: #a89880; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .card-status-badge { font-size: 9px; padding: 3px 8px; border-radius: 99px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; flex-shrink: 0; }
+    .card-status-badge.progress { background: #00aeef; color: #fff; }
+    .card-status-badge.revised { background: #059669; color: #fff; }
+    .card-status-badge.original { background: #7a6a55; color: #fff; }
+    .files-list { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+    .file-row { display: flex; gap: 10px; align-items: center; padding: 8px; background: #f5f0e8; border-radius: 8px; }
+    .file-thumb { width: 56px; height: 56px; border-radius: 6px; background: #f0ece4; overflow: hidden; flex-shrink: 0; cursor: pointer; position: relative; }
+    .file-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .file-thumb-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #c4b89a; }
+    .file-info { flex: 1; min-width: 0; }
+    .file-label { font-size: 12px; font-weight: 600; color: #1a1208; }
+    .file-meta { font-size: 11px; color: #a89880; margin-top: 2px; }
+    .file-dl { font-size: 11px; font-weight: 600; text-decoration: none; color: #00aeef; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #b3e5fa; flex-shrink: 0; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+    .file-dl:hover { background: #e6f7fd; }
+    .progress-notice, .waiting-notice, .ready-notice { border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start; margin: 0 14px 10px; }
+    .progress-notice { background: #fefce8; border: 1px solid #fde047; }
+    .delivered-notice { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .ready-notice { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .waiting-notice { background: #fefce8; border: 1px solid #fde047; }
+    .progress-label, .waiting-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; }
+    .progress-label { color: #854d0e; }
+    .delivered-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; color: #059669; }
+    .delivered-text { font-size: 11px; margin-top: 2px; line-height: 1.4; color: #059669; }
+    .ready-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; font-family: monospace; color: #059669; }
+    .ready-text { font-size: 11px; margin-top: 2px; line-height: 1.4; color: #059669; }
+    .waiting-label { color: #854d0e; }
+    .progress-text, .waiting-text { font-size: 11px; margin-top: 2px; line-height: 1.4; }
+    .progress-text { color: #854d0e; }
+    .waiting-text { color: #854d0e; }
+    .actions { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 6px; margin-top: auto; border-top: 1px solid #f0ece4; }
+    .btn { width: 100%; padding: 9px 0; border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-align: center; border: none; text-decoration: none; display: block; }
+    .btn-hist { background: transparent; border: 1.5px solid #e8e2d8; color: #7a6a55; }
+    .btn-edit { background: transparent; border: 1.5px solid #e8e2d8; color: #7a6a55; }
+    .btn-pend { background: #f5f0e8; border: 1.5px solid #e8e2d8; color: #c4b89a; cursor: not-allowed; }
+    .btn-send { background: #00aeef; color: #fff; font-weight: 700; flex: 2; }
+    .btn-cancel { background: transparent; border: 1.5px solid #e8e2d8; color: #a89880; flex: 1; }
+    .btn-attach { background: transparent; border: 1.5px dashed #c4b89a; color: #7a6a55; padding: 8px; border-radius: 8px; font-size: 11px; cursor: pointer; text-align: center; width: 100%; font-family: 'DM Sans', sans-serif; }
+    .btn-attach:hover { border-color: #00aeef; color: #00aeef; }
+    .btn-row { display: flex; gap: 6px; }
+    .sent { padding: 9px 0; text-align: center; color: #059669; font-size: 12px; font-weight: 600; }
+    textarea { width: 100%; height: 68px; padding: 9px 11px; border: 1.5px solid #d1c5a5; border-radius: 8px; resize: none; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #1a1208; background: #fffdf8; outline: none; }
+    .attachments-list { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+    .attachment-item { display: flex; align-items: center; gap: 6px; padding: 5px 8px; background: #f0ece4; border-radius: 6px; font-size: 11px; color: #3d3020; }
+    .attachment-item .ax-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .attachment-item .ax-remove { background: none; border: none; color: #a89880; cursor: pointer; padding: 0 4px; font-size: 14px; }
+    .attachment-item .ax-remove:hover { color: #00aeef; }
+    .ax-progress-wrap { flex: 1; display: flex; align-items: center; gap: 6px; }
+    .ax-progress-bar { flex: 1; height: 5px; background: #e8e2d8; border-radius: 3px; overflow: hidden; }
+    .ax-progress-fill { height: 100%; background: #00aeef; transition: width 0.2s; }
+    .ax-progress-pct { font-size: 10px; color: #7a6a55; font-family: monospace; min-width: 30px; text-align: right; }
+    .footer-note { margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0ece4; color: #c4b89a; font-size: 11px; text-align: center; }
+    .overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(10,8,5,0.6); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .drawer { background: #fffdf8; border-radius: 20px; width: 100%; max-width: 520px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
+    .drawer-head { padding: 20px 22px 16px; border-bottom: 1px solid #f0ece4; display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
+    .drawer-title { font-family: 'Lora', serif; font-weight: 700; font-size: 17px; color: #1a1208; }
+    .drawer-sub { font-size: 12px; color: #a89880; margin-top: 3px; }
+    .drawer-close { background: #f0ece4; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px; color: #7a6a55; display: flex; align-items: center; justify-content: center; }
+    .drawer-body { overflow-y: auto; padding: 20px 22px 32px; }
+    .vgroup { margin-bottom: 24px; }
+    .vgroup-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .vgroup-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: monospace; font-weight: 700; flex-shrink: 0; }
+    .vgroup-num.current { background: #1a1208; color: #fff; }
+    .vgroup-num.old { background: #f0ece4; color: #7a6a55; border: 2px solid #d1c5a5; }
+    .vgroup-label { font-weight: 700; font-size: 13px; color: #1a1208; }
+    .vgroup-cur-badge { background: #00aeef; color: #fff; font-size: 9px; padding: 2px 7px; border-radius: 99px; font-weight: 700; letter-spacing: 1px; margin-left: 8px; }
+    .vgroup-date { font-size: 11px; color: #a89880; margin-left: auto; }
+    .vgroup-files { display: flex; flex-direction: column; gap: 8px; margin-left: 42px; }
+    .req-card { border-radius: 12px; padding: 10px 14px; margin-left: 42px; margin-top: 8px; margin-bottom: 8px; }
+    .req-res { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
+    .req-pend { background: #e6f7fd; border: 1.5px solid #b3e5fa; }
+    .req-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .req-lbl-res { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; font-family: monospace; color: #059669; display: flex; align-items: center; gap: 5px; }
+    .req-lbl-pend { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; font-family: monospace; color: #005577; display: flex; align-items: center; gap: 5px; }
+    .req-date { font-size: 10px; color: #a89880; font-family: monospace; }
+    .req-note { margin: 0; font-size: 13px; color: #3d3020; line-height: 1.5; font-style: italic; }
+    .viewer-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.93); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    .viewer-top { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; align-items: center; }
+    .viewer-lbl { color: #a89880; font-size: 13px; }
+    .viewer-close { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; color: #fff; display: flex; align-items: center; justify-content: center; }
+    .viewer-img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
+    .not-found { text-align: center; padding: 80px 24px; }
+    .not-found h1 { font-family: 'Lora', serif; font-size: 24px; color: #1a1208; margin-bottom: 12px; }
+    .not-found p { color: #a89880; font-size: 14px; }
+    .loading { text-align: center; padding: 60px 24px; color: #a89880; font-size: 14px; }
+    .quote-card { background: #fff; border: 1px solid #e8e2d8; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+    .quote-card.quote-ready { border-color: #00aeef; box-shadow: 0 0 0 3px #00aeef18; }
+    .quote-thumb { width: 80px; height: 80px; border-radius: 8px; background: #f0ece4; overflow: hidden; flex-shrink: 0; }
+    .quote-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .quote-thumb-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #c4b89a; }
+    .quote-info { flex: 1; min-width: 200px; }
+    .quote-eyebrow { font-size: 11px; color: #a89880; font-family: monospace; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .quote-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 700; color: #1a1208; }
+    .quote-meta { font-size: 13px; color: #7a6a55; margin-top: 4px; }
+    .quote-status { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+    .quote-badge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; font-family: monospace; padding: 4px 10px; border-radius: 99px; }
+    .quote-badge-pending { background: #f5f0e8; border: 1px solid #e8e2d8; color: #7a6a55; }
+    .quote-badge-ready { background: #e6f7fd; border: 1px solid #b3e5fa; color: #005577; }
+    .quote-actions { display: flex; align-items: center; margin-left: auto; flex-shrink: 0; }
+    .btn-pay { background: #00aeef; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 20px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+    .btn-pay:hover { background: #0099d4; }
+    .quote-card.quote-banner { background: #f5f0e8; border-color: #e8e2d8; margin-bottom: 24px; }
+    .quote-banner-card { background: #fffbeb; border: 2px solid #f59e0b; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+    .quote-banner-card:hover { box-shadow: 0 4px 16px rgba(245,158,11,0.15); }
+    .quote-banner-label { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: #b45309; font-family: monospace; text-transform: uppercase; margin-bottom: 12px; }
+    .quote-banner-dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .pulse { display: inline-block; border-radius: 50%; animation: pulse 1.5s infinite; }
+  </style>
+</head>
+<body>
 
-  <!-- LEFT PANEL -->
-  <div class="dt-panel dt-panel--left">
-    <div class="dt-logo-img"><img src="YOUR_LOGO_URL_HERE" alt="Printer Growth" onerror="this.style.display='none'"></div>
+<nav class="nav">
+  <a href="https://printergrowth.com" class="nav-logo"><img src="https://cdn.shopify.com/s/files/1/0972/9064/9893/files/logo_180_px_wide.jpg?v=1776999754" alt="Printer Growth" style="height:40px;display:block"></a>
+  <a href="https://printergrowth.com/account" class="nav-login">My Account &rarr;</a>
+</nav>
 
-    <div class="dt-section-title">Design Layers</div>
-    <label class="dt-upload-btn" for="dt-design-upload">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Upload Design(s)
-    </label>
-    <input type="file" id="dt-design-upload" accept="image/png" multiple hidden>
-    <div id="dt-design-list" class="dt-layer-list">
-      <div class="dt-hint">No designs uploaded yet.</div>
-    </div>
-    <button class="dt-btn dt-btn--ghost" id="dt-design-reset-size" style="display:none;font-size:11px">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      Reset Design Size
-    </button>
-
-    <div class="dt-divider"></div>
-
-    <div class="dt-resize-header">
-      <div class="dt-section-title">Resize Canvas</div>
-      <div class="dt-unit-toggle">
-        <button class="dt-unit-btn active" id="dt-unit-in">in</button>
-        <button class="dt-unit-btn" id="dt-unit-cm">cm</button>
-        <button class="dt-unit-btn" id="dt-unit-px">px</button>
-      </div>
-    </div>
-    <div class="dt-resize-row">
-      <div class="dt-resize-field">
-        <label class="dt-resize-label" id="dt-w-label">W (in)</label>
-        <input type="number" id="dt-canvas-w" class="dt-num-input" min="0.1" step="0.1" placeholder="--">
-      </div>
-      <button id="dt-lock-btn" class="dt-lock-btn active" title="Lock proportions">
-        <svg id="dt-lock-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      </button>
-      <div class="dt-resize-field">
-        <label class="dt-resize-label" id="dt-h-label">H (in)</label>
-        <input type="number" id="dt-canvas-h" class="dt-num-input" min="0.1" step="0.1" placeholder="--">
-      </div>
-    </div>
-
-    <!-- DPI PREVIEW -->
-    <div id="dt-dpi-box" class="dt-dpi-box" style="display:none">
-      <div class="dt-dpi-row">
-        <span class="dt-dpi-label">DPI</span>
-        <span id="dt-dpi-val" class="dt-dpi-val">--</span>
-      </div>
-      <div class="dt-dpi-bar-wrap">
-        <div id="dt-dpi-bar" class="dt-dpi-bar"></div>
-        <div class="dt-dpi-tick" style="left:24%"><span>72</span></div>
-        <div class="dt-dpi-tick" style="left:50%"><span>150</span></div>
-        <div class="dt-dpi-tick dt-dpi-tick--300" style="left:100%"><span>300</span></div>
-      </div>
-      <div id="dt-dpi-msg" class="dt-dpi-msg"></div>
-    </div>
-
-    <!-- NO METADATA NOTICE -->
-    <div id="dt-no-meta-notice" class="dt-alpha-notice has-semi" style="display:none">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span>No DPI metadata found. Enter your intended print size above to calculate DPI.</span>
-    </div>
-
-    <div class="dt-divider"></div>
-
-    <div class="dt-section-title">Background Preview</div>
-    <div class="dt-bg-swatches">
-      <div class="dt-swatch dt-swatch-check active" data-color="none"></div>
-      <div class="dt-swatch" style="background:#fff" data-color="#ffffff"></div>
-      <div class="dt-swatch" style="background:#000" data-color="#000000"></div>
-      <div class="dt-swatch" style="background:#c8102e" data-color="#c8102e"></div>
-      <div class="dt-swatch" style="background:#003087" data-color="#003087"></div>
-      <div class="dt-swatch" style="background:#4a7c59" data-color="#4a7c59"></div>
-      <div class="dt-swatch" style="background:#888" data-color="#888888"></div>
-      <div class="dt-swatch" style="background:#f5a623" data-color="#f5a623"></div>
-      <div class="dt-custom-swatch" id="dt-custom-swatch">
-        <input type="color" id="dt-bg-custom" value="#ff6600">
-      </div>
-    </div>
-
-    <div class="dt-divider"></div>
-
-    <!-- SEMI-TRANSPARENT — only shown when semi-transparent pixels exist -->
-    <div id="dt-alpha-section" style="display:none">
-      <label class="dt-checkbox-row" id="dt-thresh-label">
-        <input type="checkbox" id="dt-thresh-check">
-        <span class="dt-checkbox-label">Remove Semi-Transparent Pixels</span>
-        <button type="button" id="dt-thresh-info-btn" class="dt-info-btn">?</button>
-      </label>
-      <div id="dt-thresh-info" style="display:none;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:6px;padding:9px 10px;font-size:10px;color:#888;line-height:1.6;">
-        Semi-transparent pixels produce a faint white or gray haze around the design when printed with DTF. Cleaning these up ensures sharper edges and more vibrant colors.
-      </div>
-      <div id="dt-thresh-panel" style="display:none">
-        <div class="dt-section-title" style="margin-top:4px">Threshold: <span id="dt-thresh-val">128</span></div>
-        <input type="range" class="dt-range" id="dt-threshold" min="0" max="255" value="128">
-        <p class="dt-hint">Drag to preview. Uncheck to revert.</p>
-      </div>
-      <div class="dt-divider"></div>
-    </div>
-
-    <div class="dt-divider"></div>
-    <!-- COLOR KNOCKOUT COLLAPSIBLE -->
-    <button class="dt-btn dt-btn--ghost" id="dt-knockout-toggle" style="justify-content:space-between">
-      <span style="display:flex;align-items:center;gap:6px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/><path d="M6 11l7 7"/></svg>
-        Color Knockout
-      </span>
-      <svg id="dt-knockout-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-    <div id="dt-knockout-panel" style="display:none">
-      <div class="dt-knockout-row" style="margin-top:6px">
-        <div class="dt-knockout-swatch-wrap">
-          <div id="dt-knockout-preview" class="dt-knockout-preview" style="background:#000000"></div>
-          <input type="color" id="dt-knockout-color" value="#000000" class="dt-knockout-color-input">
-        </div>
-        <button class="dt-btn dt-btn--ghost" id="dt-eyedropper-btn" title="Pick color from canvas" style="width:32px;padding:0;flex-shrink:0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7l4 4-1.5 1.5L14 11v1.27A2 2 0 1 1 10 12V7.73A2 2 0 0 1 10 4a2 2 0 0 1 2-2z"/><path d="m3 21 4-4 3 3-4 4z" fill="currentColor" stroke="none"/><path d="M10 14 3 21"/></svg>
-        </button>
-        <div style="flex:1;display:flex;flex-direction:column;gap:3px">
-          <label class="dt-resize-label">Tolerance: <span id="dt-knockout-tol-val">30</span></label>
-          <input type="range" class="dt-range" id="dt-knockout-tol" min="0" max="255" value="30">
-        </div>
-      </div>
-      <label class="dt-checkbox-row" style="margin-top:6px">
-        <input type="checkbox" id="dt-halftone-check">
-        <span class="dt-checkbox-label">Halftone Edge</span>
-      </label>
-      <div id="dt-halftone-panel" style="display:none;margin-top:4px">
-        <div class="dt-section-title">Frequency: <span id="dt-halftone-lpi-val">35</span> LPI</div>
-        <input type="range" class="dt-range" id="dt-halftone-lpi" min="10" max="100" value="35">
-      </div>
-      <div class="dt-fit-row" style="margin-top:6px">
-        <button class="dt-btn dt-btn--secondary" id="dt-knockout-preview-btn" style="flex:1;font-size:11px">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          Preview
-        </button>
-        <button class="dt-btn dt-btn--ghost" id="dt-knockout-undo" style="flex:1;font-size:11px">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 2.6-6.36L3 9"/></svg>
-          Undo
-        </button>
-      </div>
-      <div id="dt-knockout-commit-row" class="dt-fit-row" style="display:none;margin-top:4px">
-        <button class="dt-btn dt-btn--export" id="dt-knockout-commit" style="flex:1;font-size:11px">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          Commit
-        </button>
-        <button class="dt-btn dt-btn--ghost" id="dt-knockout-cancel" style="flex:1;font-size:11px">Cancel</button>
-      </div>
-      <p class="dt-hint" style="margin-top:4px" id="dt-knockout-hint">Removes selected color. Use eyedropper to sample from canvas.</p>
-    </div>
-
-    <div class="dt-divider"></div>
-    <button class="dt-btn dt-btn--ghost" id="dt-crop-btn">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 2 6 18 22 18"/><polyline points="2 6 18 6 18 22"/></svg>
-      Auto Crop
-    </button>
-
-    <div class="dt-divider"></div>
-
-    <button class="dt-btn dt-btn--export" id="dt-export-btn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Export 300 DPI PNG
-    </button>
-    <div class="dt-hint" style="margin-top:4px">Transparent PNG at 300 px/inch</div>
-  </div>
-
-  <!-- CANVAS -->
-  <div class="dt-canvas-area">
-    <div class="dt-canvas-topbar">
-      <span class="dt-canvas-label">Preview <span style="color:#3a3a3a;font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">-- checkerboard = transparent</span></span>
-      <div class="dt-zoom-controls">
-        <button class="dt-zoom-btn" id="dt-zoom-out">-</button>
-        <span id="dt-zoom-val">100%</span>
-        <button class="dt-zoom-btn" id="dt-zoom-in">+</button>
-        <button class="dt-zoom-btn" id="dt-zoom-fit">Fit</button>
-        <button class="dt-zoom-btn" id="dt-fullscreen-btn" title="Full screen">
-          <svg id="dt-fs-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="dt-viewport" id="dt-viewport">
-      <div id="dt-artboard" class="dt-artboard">
-        <div id="dt-bg-layer" class="dt-bg-layer"></div>
-        <canvas id="dt-canvas"></canvas>
-        <div id="dt-size-badge" style="display:none">
-          <span id="dt-badge-size"></span>
-          <span id="dt-badge-px"></span>
-        </div>
-      </div>
-      <div id="dt-empty" class="dt-empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        <p>Upload a design to get started</p>
-      </div>
-    </div>
-    <div id="dt-canvas-info" class="dt-canvas-info"></div>
-  </div>
-
-  <!-- RIGHT PANEL -->
-  <div class="dt-panel dt-panel--right">
-    <div class="dt-section-title">Distress Textures</div>
-    <p class="dt-hint" id="dt-distress-hint">Upload distress PNGs. Select a design layer first, then click a distress to apply it to that layer.</p>
-    <label class="dt-upload-btn" for="dt-distress-upload">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Upload Distress PNG(s)
-    </label>
-    <input type="file" id="dt-distress-upload" accept="image/png" multiple hidden>
-    <div id="dt-distress-list" class="dt-layer-list" style="margin-top:4px">
-      <div class="dt-hint">No distress textures loaded.</div>
-    </div>
-
-    <div id="dt-distress-controls" style="display:none">
-      <div class="dt-divider"></div>
-      <div class="dt-section-title" id="dt-distress-ctrl-name">Distress Controls</div>
-      <div class="dt-section-title" style="margin-top:4px">Size</div>
-      <div class="dt-resize-row">
-        <div class="dt-resize-field">
-          <label class="dt-resize-label" id="dt-dx-label">W (in)</label>
-          <input type="number" id="dt-dist-w" class="dt-num-input" min="0.1" step="0.1" placeholder="--">
-        </div>
-        <button id="dt-dist-lock" class="dt-lock-btn active" title="Lock proportions">
-          <svg id="dt-dist-lock-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </button>
-        <div class="dt-resize-field">
-          <label class="dt-resize-label" id="dt-dy-label">H (in)</label>
-          <input type="number" id="dt-dist-h" class="dt-num-input" min="0.1" step="0.1" placeholder="--">
-        </div>
-      </div>
-      <div class="dt-fit-row" style="margin-top:4px">
-        <button class="dt-btn dt-btn--secondary" id="dt-fit-btn" style="flex:1;font-size:11px">Scale to Artboard</button>
-        <button class="dt-btn dt-btn--ghost" id="dt-dist-reset-size" style="flex:1;font-size:11px">Reset Size</button>
-      </div>
-      <div class="dt-section-title" style="margin-top:6px">Position</div>
-      <div class="dt-arrow-pad">
-        <div></div><button class="dt-arrow-btn" id="dt-nudge-up">&#9650;</button><div></div>
-        <button class="dt-arrow-btn" id="dt-nudge-left">&#9664;</button>
-        <button class="dt-arrow-btn" id="dt-nudge-center" title="Center">&#x25A6;</button>
-        <button class="dt-arrow-btn" id="dt-nudge-right">&#9654;</button>
-        <div></div><button class="dt-arrow-btn" id="dt-nudge-down">&#9660;</button><div></div>
-      </div>
-      <div class="dt-nudge-row">
-        <span class="dt-hint">Step:</span>
-        <button class="dt-nudge-size active" data-px="1">1px</button>
-        <button class="dt-nudge-size" data-px="5">5px</button>
-        <button class="dt-nudge-size" data-px="10">10px</button>
-      </div>
-      <div class="dt-section-title" style="margin-top:6px">Rotation</div>
-      <div class="dt-rotate-row">
-        <button class="dt-rotate-btn active" data-rot="0">0</button>
-        <button class="dt-rotate-btn" data-rot="90">90</button>
-        <button class="dt-rotate-btn" data-rot="180">180</button>
-        <button class="dt-rotate-btn" data-rot="270">270</button>
-      </div>
-
-      <!-- HALFTONE BORDER — only shown for Texture Borders group -->
-      <div id="dt-border-halftone-section" style="display:none">
-        <div class="dt-divider" style="margin-top:8px"></div>
-        <button class="dt-btn dt-btn--ghost" id="dt-border-ht-toggle" style="justify-content:space-between;margin-top:2px">
-          <span style="display:flex;align-items:center;gap:6px">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="1.5"/><circle cx="19" cy="5" r="1"/><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="0.5"/><circle cx="5" cy="19" r="1"/><circle cx="12" cy="19" r="0.5"/></svg>
-            Halftone Border
-          </span>
-          <svg id="dt-border-ht-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div id="dt-border-ht-panel" style="display:none;margin-top:4px">
-          <div class="dt-section-title">Blur: <span id="dt-border-blur-val">10</span>px</div>
-          <input type="range" class="dt-range" id="dt-border-blur" min="0" max="100" value="10">
-          <div class="dt-section-title" style="margin-top:4px">LPI: <span id="dt-border-lpi-val">35</span></div>
-          <input type="range" class="dt-range" id="dt-border-lpi" min="10" max="100" value="35">
-          <div class="dt-fit-row" style="margin-top:6px">
-            <button class="dt-btn dt-btn--export" id="dt-border-ht-commit" style="flex:1;font-size:11px">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Commit
-            </button>
-            <button class="dt-btn dt-btn--ghost" id="dt-border-ht-cancel" style="flex:1;font-size:11px">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 2.6-6.36L3 9"/></svg>
-              Undo / Cancel
-            </button>
-          </div>
-          <p class="dt-hint" style="margin-top:4px">Adjust blur and LPI to preview live. Commit to apply.</p>
-        </div>
-      </div>
-
-      <div class="dt-divider" style="margin-top:8px"></div>
-      <div class="dt-section-title" style="margin-top:4px">Eraser</div>
-      <div class="dt-eraser-row">
-        <button class="dt-btn dt-btn--ghost dt-eraser-toggle" id="dt-eraser-toggle" style="flex:1;font-size:11px">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/><path d="M6.0 11.0 l7 7"/></svg>
-          Eraser: Off
-        </button>
-      </div>
-      <div id="dt-eraser-controls" style="display:none;margin-top:4px">
-        <div class="dt-section-title" style="margin-top:2px">Brush Size: <span id="dt-eraser-size-val">20</span>px</div>
-        <input type="range" class="dt-range" id="dt-eraser-size" min="2" max="200" value="20">
-        <div class="dt-fit-row" style="margin-top:4px">
-          <button class="dt-btn dt-btn--ghost" id="dt-eraser-undo" style="flex:1;font-size:11px">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 2.6-6.36L3 9"/></svg>
-            Undo
-          </button>
-          <button class="dt-btn dt-btn--ghost" id="dt-eraser-clear" style="flex:1;font-size:11px">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
-            Clear Mask
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="dt-divider"></div>
-    <!-- ACTIVE DISTRESSES -->
-    <div id="dt-active-section" style="display:none">
-      <div class="dt-section-title">Active</div>
-      <div id="dt-active-list" class="dt-layer-list"></div>
-    </div>
-
-  </div>
-
+<div class="container">
+  <div id="app-root"><div class="loading">Loading your orders&hellip;</div></div>
 </div>
 
-<style>
-.dt-wrap * { box-sizing: border-box; }
-.dt-wrap { display: flex; width: 100%; min-height: 720px; background: #111; color: #e8e8e8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; border-radius: 12px; overflow: hidden; }
-.dt-panel { width: 220px; min-width: 200px; background: #1a1a1a; padding: 14px 12px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
-.dt-panel--left  { border-right: 1px solid #252525; }
-.dt-panel--right { border-left:  1px solid #252525; }
-.dt-logo-img img { width: 100%; max-width: 180px; height: auto; display: block; margin-bottom: 2px; }
-.dt-section-title { font-size: 10px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .8px; }
-.dt-hint { font-size: 10px; color: #555; line-height: 1.5; margin: 0; }
-.dt-divider { height: 1px; background: #222; margin: 2px 0; }
-.dt-upload-btn { display: flex; align-items: center; gap: 7px; background: #252525; border: 1px dashed #383838; color: #bbb; padding: 8px 10px; border-radius: 7px; cursor: pointer; font-size: 12px; transition: border-color .2s; }
-.dt-upload-btn:hover { border-color: #666; }
-.dt-range { width: 100%; accent-color: #e05c2d; cursor: pointer; }
-.dt-resize-header { display: flex; align-items: center; justify-content: space-between; }
-.dt-unit-toggle { display: flex; border-radius: 5px; overflow: hidden; border: 1px solid #333; }
-.dt-unit-btn { background: #252525; border: none; color: #777; font-size: 10px; font-weight: 600; padding: 3px 8px; cursor: pointer; }
-.dt-unit-btn.active { background: #e05c2d; color: #fff; }
-.dt-resize-row { display: flex; align-items: flex-end; gap: 5px; }
-.dt-resize-field { display: flex; flex-direction: column; gap: 3px; flex: 1; }
-.dt-resize-label { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: .6px; }
-.dt-num-input { width: 100%; background: #252525; border: 1px solid #333; color: #ddd; padding: 5px 6px; border-radius: 6px; font-size: 12px; text-align: center; }
-.dt-num-input:focus { outline: none; border-color: #e05c2d; }
-.dt-fit-row { display: flex; gap: 5px; }
-.dt-lock-btn { width: 28px; height: 28px; flex-shrink: 0; border-radius: 6px; border: 1px solid #333; background: #252525; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: all .15s; }
-.dt-lock-btn.active { border-color: #e05c2d; color: #e05c2d; background: #2a1a10; }
-.dt-dpi-box { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 7px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
-.dt-dpi-row { display: flex; align-items: baseline; justify-content: space-between; }
-.dt-dpi-label { font-size: 9px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: .8px; }
-.dt-dpi-val { font-size: 20px; font-weight: 700; color: #e8e8e8; line-height: 1; }
-.dt-dpi-bar-wrap { position: relative; height: 6px; background: #2a2a2a; border-radius: 3px; margin-bottom: 10px; }
-.dt-dpi-bar { height: 100%; border-radius: 3px; transition: width .3s, background .3s; width: 0%; }
-.dt-dpi-tick { position: absolute; top: 8px; transform: translateX(-50%); }
-.dt-dpi-tick span { font-size: 8px; color: #444; }
-.dt-dpi-tick--300 { transform: translateX(-100%); }
-.dt-dpi-msg { font-size: 10px; line-height: 1.4; }
-.dt-dpi-msg.good { color: #4caf7d; }
-.dt-dpi-msg.warn { color: #f5a623; }
-.dt-dpi-msg.bad  { color: #e05c2d; }
-.dt-alpha-notice { display: flex; align-items: flex-start; gap: 6px; padding: 7px 9px; border-radius: 7px; border: 1px solid; font-size: 10px; line-height: 1.5; }
-.dt-alpha-notice.has-semi { border-color: #7a4a1a; background: #1e1505; color: #f5a623; }
-.dt-layer-list { display: flex; flex-direction: column; gap: 4px; }
-.dt-layer-item { display: flex; align-items: center; gap: 6px; background: #202020; border: 2px solid #2a2a2a; border-radius: 7px; padding: 5px 7px; cursor: pointer; transition: border-color .15s; }
-.dt-layer-item:hover  { border-color: #444; }
-.dt-layer-item.selected { border-color: #e05c2d; background: #231a14; }
-.dt-distress-item { opacity: 0.45; }
-.dt-distress-item.applied { opacity: 1; border-color: #e05c2d !important; background: #231a14; }
-.dt-layer-thumb { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: #fff; }
-.dt-layer-info { flex: 1; min-width: 0; }
-.dt-layer-name { font-size: 11px; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dt-layer-sub  { font-size: 9px; color: #555; margin-top: 1px; }
-.dt-layer-item.selected .dt-layer-sub { color: #e05c2d; }
-.dt-layer-del { background: none; border: none; color: #444; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; flex-shrink: 0; transition: color .15s; }
-.dt-layer-del:hover { color: #e05c2d; }
-.dt-eye-btn { background: none; border: none; cursor: pointer; padding: 2px; flex-shrink: 0; color: #555; transition: color .15s; }
-.dt-eye-btn.on { color: #e05c2d; }
-.dt-checkbox-row { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 9px; background: #222; border-radius: 7px; border: 1px solid #2a2a2a; }
-.dt-checkbox-row:hover { border-color: #444; }
-.dt-checkbox-row input[type="checkbox"] { accent-color: #e05c2d; width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
-.dt-checkbox-label { font-size: 11px; color: #ccc; flex: 1; }
-.dt-info-btn { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #444; background: #252525; color: #888; font-size: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
-.dt-info-btn:hover { border-color: #e05c2d; color: #e05c2d; }
-.dt-bg-swatches { display: flex; flex-wrap: wrap; gap: 5px; }
-.dt-swatch { width: 28px; height: 28px; border-radius: 5px; border: 2px solid #333; cursor: pointer; transition: border-color .15s; }
-.dt-swatch:hover, .dt-swatch.active { border-color: #e05c2d; }
-.dt-swatch-check { background: repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/10px 10px; }
-.dt-custom-swatch { position: relative; width: 28px; height: 28px; border-radius: 5px; border: 2px solid #333; cursor: pointer; overflow: hidden; background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red); transition: border-color .15s; }
-.dt-custom-swatch:hover, .dt-custom-swatch.active { border-color: #e05c2d; }
-.dt-custom-swatch input[type=color] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: none; padding: 0; }
-.dt-btn { width: 100%; padding: 8px 10px; border-radius: 7px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: opacity .15s; }
-.dt-btn--secondary { background: #262626; color: #bbb; border: 1px solid #353535; }
-.dt-btn--ghost { background: transparent; color: #666; border: 1px solid #2a2a2a; }
-.dt-btn--export { background: #1a6e42; color: #fff; }
-.dt-btn:hover { opacity: .85; }
-.dt-canvas-area { flex: 1; display: flex; flex-direction: column; padding: 14px 16px; gap: 8px; background: #111; min-width: 0; }
-.dt-canvas-topbar { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-.dt-canvas-label { font-size: 10px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: .8px; }
-.dt-zoom-controls { display: flex; align-items: center; gap: 4px; }
-.dt-zoom-btn { background: #252525; border: 1px solid #333; color: #aaa; border-radius: 5px; cursor: pointer; padding: 3px 8px; font-size: 11px; font-weight: 600; }
-.dt-zoom-btn:hover { border-color: #666; color: #fff; }
-#dt-zoom-val { font-size: 11px; color: #555; min-width: 36px; text-align: center; }
-.dt-viewport { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: #080808; min-height: 300px; padding: 20px; position: relative; scroll-behavior: auto; }
-.dt-artboard { position: relative; display: inline-block; line-height: 0; flex-shrink: 0; }
-.dt-bg-layer { position: absolute; inset: 0; pointer-events: none; border-radius: 2px; z-index: 0; }
-#dt-canvas { display: block; position: relative; z-index: 1; }
-.dt-size-badge { display: none !important; }
-.dt-empty-state { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 10px; color: #3a3a3a; font-size: 13px; }
-.dt-canvas-info { font-size: 11px; font-weight: 600; color: #e05c2d; text-align: center; flex-shrink: 0; letter-spacing: .3px; }
-.dt-arrow-pad { display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; }
-.dt-arrow-btn { background: #252525; border: 1px solid #333; color: #aaa; border-radius: 5px; cursor: pointer; padding: 6px; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
-.dt-arrow-btn:hover { border-color: #666; color: #fff; }
-.dt-arrow-btn:active { background: #e05c2d; border-color: #e05c2d; color: #fff; }
-.dt-nudge-row { display: flex; align-items: center; gap: 5px; }
-.dt-nudge-size { background: #252525; border: 1px solid #333; color: #777; font-size: 9px; font-weight: 600; border-radius: 4px; padding: 2px 6px; cursor: pointer; transition: all .15s; }
-.dt-nudge-size.active { background: #e05c2d; border-color: #e05c2d; color: #fff; }
-.dt-rotate-row { display: flex; gap: 4px; }
-.dt-rotate-btn { flex: 1; padding: 5px 2px; border-radius: 6px; border: 1px solid #333; background: #252525; color: #888; font-size: 10px; font-weight: 600; cursor: pointer; transition: all .15s; }
-.dt-rotate-btn.active { background: #e05c2d; border-color: #e05c2d; color: #fff; }
-@media (max-width: 900px) { .dt-wrap { flex-direction: column; } .dt-panel { width: 100%; } }
-/* color knockout */
-.dt-knockout-row { display: flex; align-items: center; gap: 6px; }
-.dt-knockout-swatch-wrap { position: relative; width: 32px; height: 32px; flex-shrink: 0; border-radius: 6px; border: 2px solid #333; overflow: hidden; cursor: pointer; }
-.dt-knockout-preview { width: 100%; height: 100%; }
-.dt-knockout-color-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: none; padding: 0; }
-#dt-eyedropper-btn.active { background: #2a1a10; border-color: #e05c2d; color: #e05c2d; }
-#dt-canvas.eyedropper-mode { cursor: crosshair; }
-/* eraser */
-.dt-eraser-row { display: flex; gap: 5px; }
-.dt-eraser-toggle.active { background: #2a1a10; border-color: #e05c2d; color: #e05c2d; }
-#dt-canvas.eraser-mode { cursor: crosshair; }
-/* fullscreen */
-.dt-wrap.dt-fullscreen { position: fixed; inset: 0; z-index: 99999; border-radius: 0; min-height: 100vh; }
-.dt-wrap.dt-fullscreen .dt-viewport { min-height: 0; }
-/* flashing threshold button */
-@keyframes dt-flash-red {
-  0%, 100% { border-color: #e05c2d; background: #2a1005; color: #e05c2d; }
-  50%       { border-color: #ff2200; background: #3a1a08; color: #ff6644; }
-}
-.dt-thresh-flash { animation: dt-flash-red 1s ease-in-out infinite; }
-/* group headers in distress list */
-.dt-group-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 5px 2px; user-select: none; }
-.dt-group-header:hover .dt-group-label { color: #ccc; }
-.dt-group-label { font-size: 10px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .8px; }
-.dt-group-chevron { color: #555; transition: transform .2s; }
-.dt-group-chevron.open { transform: rotate(90deg); }
-.dt-group-items { display: none; }
-.dt-group-items.open { display: flex; flex-direction: column; gap: 4px; }
-</style>
+<div id="drawer-root"></div>
+<div id="viewer-root"></div>
 
 <script>
-(function() {
+(function(){
+  // v2025.1
+  var SUPABASE_URL  = 'https://smmvhozhzeemojqrazbl.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtbXZob3poemVlbW9qcXJhemJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNzk4NzEsImV4cCI6MjA4OTg1NTg3MX0.ywFxo6-i9uMA-c3r1DcF_i5WD35YRm4S1xWWiTf40us';
+  var STORAGE_BUCKET = 'File Uploads';
+  var EDIT_ENDPOINT = '/api/edit';
 
-  var state = {
-    designLayers: [], distressTextures: [],
-    selectedDesignId: null, selectedDistressId: null,
-    zoom: 1, lockCanvas: true, lockDistress: true,
-    currentUnit: 'in', canvasW: 0, canvasH: 0,
-    nativePixelW: 0, hasMetadata: false
+  var _ordersCache = null;
+  var _customerEmail = null;
+  var _attachments = {};
+
+  var token = new URLSearchParams(window.location.search).get('token');
+  if (!token) { showNotFound(); return; }
+
+  function sq(table, params) {
+    return fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + params, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+    }).then(function(r){ return r.json(); });
+  }
+
+  function uploadFile(file, pathPrefix, onProgress) {
+    var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    var path = pathPrefix + '/' + Date.now() + '-' + safeName;
+    var encodedBucket = encodeURIComponent(STORAGE_BUCKET);
+    var url = SUPABASE_URL + '/storage/v1/object/' + encodedBucket + '/' + encodeURIComponent(path);
+    var xhr = new XMLHttpRequest();
+    var promise = new Promise(function(resolve, reject){
+      xhr.open('POST', url);
+      xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON);
+      xhr.setRequestHeader('apikey', SUPABASE_ANON);
+      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+      xhr.upload.onprogress = function(e){
+        if (e.lengthComputable && onProgress) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+      xhr.onload = function(){
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(SUPABASE_URL + '/storage/v1/object/public/' + encodedBucket + '/' + encodeURIComponent(path));
+        } else {
+          reject(new Error('Upload failed: ' + xhr.status));
+        }
+      };
+      xhr.onerror = function(){ reject(new Error('Network error')); };
+      xhr.onabort = function(){ reject(new Error('cancelled')); };
+      xhr.send(file);
+    });
+    promise.xhr = xhr;
+    return promise;
+  }
+
+  sq('customers', 'select=*&token=eq.' + token + '&limit=1').then(function(customers) {
+    if (!customers || !customers.length) { showNotFound(); return; }
+    var customer = customers[0];
+    sq('orders', 'select=*&customer_id=eq.' + customer.id + '&order=created_at.desc').then(function(orders) {
+      orders = orders || [];
+      sq('quotes', 'select=*&customer_email=eq.' + encodeURIComponent(customer.email) + '&order=created_at.desc').then(function(quotes) {
+        quotes = (quotes && Array.isArray(quotes)) ? quotes.filter(function(q){ return q.status !== 'paid'; }) : [];
+        if (!orders.length && !quotes.length) { renderNoOrders(customer); return; }
+        if (!orders.length) {
+          _ordersCache = [];
+          _customerEmail = customer.email;
+          render(customer, [], quotes);
+          return;
+        }
+        var orderIds = orders.map(function(o){ return o.shopify_order_id; });
+        var orderIdFilter = 'shopify_order_id=in.(' + orderIds.join(',') + ')';
+        Promise.all([
+          sq('files', 'select=*&' + orderIdFilter + '&order=base_name.asc'),
+          sq('file_versions', 'select=*&order=version.asc'),
+          sq('edit_requests', 'select=*&order=created_at.asc'),
+          sq('quotes', 'select=id,subtask_id&customer_email=eq.' + encodeURIComponent(customer.email) + '&status=eq.paid').catch(function(){ return []; })
+        ]).then(function(res) {
+          var files = res[0]||[], versions = res[1]||[], requests = res[2]||[], paidQuotes = res[3]||[];
+          files = files.map(function(f) {
+            f.all_versions  = versions.filter(function(v){ return v.file_id === f.id; });
+            var paidQuoteIds = paidQuotes.filter(function(q){ return q.subtask_id === f.clickup_subtask_id; }).map(function(q){ return q.id; });
+            f.edit_requests = requests.filter(function(r){ 
+              return r.file_id === f.id || paidQuoteIds.indexOf(r.file_id) !== -1;
+            });
+            if (f.all_versions.length) {
+              var maxV = Math.max.apply(null, f.all_versions.map(function(v){ return v.version; }));
+              f.latest_version = maxV;
+              f.current_files = f.all_versions.filter(function(v){ return v.version === maxV; });
+            } else {
+              f.latest_version = f.version || 1;
+              f.current_files = [{
+                id: 'base-' + f.id,
+                version: f.version || 1,
+                download_url: f.download_url,
+                preview_url: f.preview_url,
+                uploaded_at: f.created_at
+              }];
+            }
+            return f;
+          });
+          orders = orders.map(function(o){
+            o.files = files.filter(function(f){ return String(f.shopify_order_id) === String(o.shopify_order_id); });
+            return o;
+          });
+          _ordersCache = orders;
+          _customerEmail = customer.email;
+          render(customer, orders, quotes);
+        });
+      }).catch(function(){
+        _ordersCache = [];
+        _customerEmail = customer.email;
+        render(customer, orders, []);
+      });
+    });
+  }).catch(showNotFound);
+
+  function render(customer, orders, quotes) {
+    quotes = quotes || [];
+    var html = '<div class="customer-header"><div><div class="customer-eyebrow">Welcome back</div>';
+    html += '<div class="customer-title">' + (customer.name || customer.email) + '</div>';
+    html += '<div class="customer-meta"><span>' + orders.length + ' order' + (orders.length!==1?'s':'') + '</span></div></div>';
+    html += '<a href="https://printergrowth.com/pages/artwork-services" class="btn-order-more" target="_blank">+ Order More Artwork</a></div>';
+    var uniqueQuoteNumbers = {};
+    quotes.forEach(function(q){ uniqueQuoteNumbers[q.quote_number || q.id] = true; });
+    var quoteGroupCount = Object.keys(uniqueQuoteNumbers).length;
+    var quoteBadge = quoteGroupCount ? '<span class="tab-badge">' + quoteGroupCount + '</span>' : '';
+    html += '<div class="tabs">';
+    html += '<button class="tab-btn active" id="tab-btn-orders" onclick="window.switchTab(\'orders\')">Orders</button>';
+    html += '<button class="tab-btn" id="tab-btn-quotes" onclick="window.switchTab(\'quotes\')">Quotes' + quoteBadge + '</button>';
+    html += '</div>';
+    html += '<div id="tab-orders"><div style="margin-bottom:12px;"><button id="toggle-all-btn" onclick="window.toggleAllOrders()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button></div><div id="quote-banner-area"></div><div id="orders-list"></div></div>';
+    html += '<div id="tab-quotes" style="display:none"><div style="margin-bottom:12px;"><button id="toggle-all-quotes-btn" onclick="window.toggleAllQuotes()" style="background:transparent;border:1.5px solid #e8e2d8;color:#7a6a55;padding:6px 14px;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">&#9660; Expand All</button></div><div id="quotes-list"></div></div>';
+    document.getElementById('app-root').innerHTML = html;
+
+    var quoteGroups = {};
+    var quoteGroupOrder = [];
+    quotes.forEach(function(q) {
+      var key = q.quote_number || q.id;
+      if (!quoteGroups[key]) { quoteGroups[key] = []; quoteGroupOrder.push(key); }
+      quoteGroups[key].push(q);
+    });
+    quoteGroupOrder.sort(function(a, b) { return Number(b) - Number(a); });
+
+    var bannerArea = document.getElementById('quote-banner-area');
+    var readyQuoteKey = null;
+    for (var qi = 0; qi < quoteGroupOrder.length; qi++) {
+      var qg = quoteGroups[quoteGroupOrder[qi]];
+      if (qg.some(function(q){ return q.status === 'quote_ready'; })) {
+        readyQuoteKey = quoteGroupOrder[qi];
+        break;
+      }
+    }
+    if (readyQuoteKey !== null) {
+      var bannerWrapper = document.createElement('div');
+      bannerWrapper.className = 'quote-banner-card';
+      var bannerLabel = document.createElement('div');
+      bannerLabel.className = 'quote-banner-label';
+      bannerLabel.innerHTML = '<span class="quote-banner-dot"></span> Quote Awaiting Action';
+      bannerWrapper.appendChild(bannerLabel);
+      var bannerCard = buildQuoteGroupCard(quoteGroups[readyQuoteKey], true);
+      bannerWrapper.appendChild(bannerCard);
+      bannerArea.appendChild(bannerWrapper);
+      setTimeout(function(){
+        var d = document.getElementById('quote-detail-banner-' + readyQuoteKey);
+        if (d) d.style.display = 'block';
+      }, 10);
+    }
+
+    var list = document.getElementById('orders-list');
+    orders.forEach(function(o,i){
+      list.appendChild(buildOrderCard(o));
+      if (i === 0) setTimeout(function(){ toggleOrder(o.shopify_order_id); }, 10);
+    });
+    if (!orders.length) {
+      list.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No orders yet</h1><p>Once you place an order it\'ll show up here.</p></div>';
+    }
+
+    var qlist = document.getElementById('quotes-list');
+    if (quoteGroupOrder.length) {
+      quoteGroupOrder.forEach(function(key, i) {
+        var qcard = buildQuoteGroupCard(quoteGroups[key], false);
+        qlist.appendChild(qcard);
+        if (i === 0) setTimeout(function(){
+          var d = document.getElementById('quote-detail-' + key);
+          if (d) d.style.display = 'block';
+        }, 10);
+      });
+    } else {
+      qlist.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No quotes yet</h1><p>When you request a vector quote it will appear here.</p></div>';
+    }
+  }
+
+  window.deleteQuote = function(quoteNumber) {
+    if (!confirm('Are you sure you want to delete this quote?')) return;
+    fetch('https://smmvhozhzeemojqrazbl.supabase.co/rest/v1/quotes?quote_number=eq.' + quoteNumber, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + SUPABASE_ANON
+      }
+    }).then(function() {
+      document.querySelectorAll('[data-quote-number="' + quoteNumber + '"]').forEach(function(el){ el.remove(); });
+      var bannerArea = document.getElementById('quote-banner-area');
+      if (bannerArea) {
+        var remaining = bannerArea.querySelector('[data-quote-number]');
+        if (!remaining) bannerArea.innerHTML = '';
+      }
+      var remaining = document.querySelectorAll('#quotes-list [data-quote-number]').length;
+      var tabBtn = document.getElementById('tab-btn-quotes');
+      if (tabBtn) tabBtn.innerHTML = 'Quotes' + (remaining ? '<span class="tab-badge">' + remaining + '</span>' : '');
+      var qlist = document.getElementById('quotes-list');
+      if (qlist && !qlist.querySelector('[data-quote-number]')) {
+        qlist.innerHTML = '<div class="not-found" style="padding:40px 0"><h1>No quotes yet</h1><p>When you request a vector quote it will appear here.</p></div>';
+      }
+    }).catch(function(){ alert('Could not delete quote. Please try again.'); });
   };
 
-  var renderTimer = null;
-  function scheduleRender() { clearTimeout(renderTimer); renderTimer = setTimeout(render, 60); }
-  function $(id) { return document.getElementById(id); }
+  window.switchTab = function(tab) {
+    document.getElementById('tab-orders').style.display = tab === 'orders' ? '' : 'none';
+    document.getElementById('tab-quotes').style.display = tab === 'quotes' ? '' : 'none';
+    document.getElementById('tab-btn-orders').className = 'tab-btn' + (tab === 'orders' ? ' active' : '');
+    document.getElementById('tab-btn-quotes').className = 'tab-btn' + (tab === 'quotes' ? ' active' : '');
+  };
 
-  var mainCanvas = $('dt-canvas');
-  var ctx = mainCanvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-  var artboard = $('dt-artboard'), viewport = $('dt-viewport');
-  var emptyEl = $('dt-empty'), infoEl = $('dt-canvas-info');
-  var designListEl = $('dt-design-list'), distressListEl = $('dt-distress-list');
-  var distressCtrl = $('dt-distress-controls');
+  function buildQuoteGroupCard(group, isBanner) {
+    var first = group[0];
+    var isReady = group.some(function(q){ return q.status === 'quote_ready'; });
+    var date = first.created_at ? new Date(first.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    var quoteNum = first.quote_number || first.id;
+    var paymentLink = '';
+    group.forEach(function(q){ if (q.payment_link) paymentLink = q.payment_link; });
 
-  function uid() { return Date.now() + '_' + Math.random().toString(36).slice(2,5); }
-  function toIn(v) {
-    if (state.currentUnit === 'cm') return v / 2.54;
-    if (state.currentUnit === 'px') return v / 300;
-    return v;
-  }
-  function fromIn(i) {
-    if (state.currentUnit === 'cm') return +(i * 2.54).toFixed(2);
-    if (state.currentUnit === 'px') return Math.round(i * 300);
-    return +i.toFixed(2);
-  }
-  function makeCanvas(w, h, src) {
-    var c = document.createElement('canvas'); c.width = w; c.height = h;
-    var cx = c.getContext('2d'); cx.imageSmoothingEnabled = false;
-    if (src) cx.drawImage(src, 0, 0, w, h);
-    return c;
-  }
-  function getSelectedDesign() { return state.designLayers.find(function(d){ return d.id===state.selectedDesignId; })||null; }
-  function getSelectedDistress() { return state.distressTextures.find(function(t){ return t.id===state.selectedDistressId; })||null; }
+    var card = document.createElement('div');
+    card.className = 'order-card' + (isReady ? ' inprogress' : '');
+    card.setAttribute('data-quote-number', quoteNum);
+    card.dataset.expanded = 'false';
 
-  /* ---- READ pHYs CHUNK ---- */
-  function readPNGDPI(buf) {
-    var b = new Uint8Array(buf), pos = 8;
-    while (pos < b.length - 12) {
-      var len = (b[pos]<<24)|(b[pos+1]<<16)|(b[pos+2]<<8)|b[pos+3];
-      var type = String.fromCharCode(b[pos+4],b[pos+5],b[pos+6],b[pos+7]);
-      if (type === 'pHYs') {
-        var pX = (b[pos+8]<<24)|(b[pos+9]<<16)|(b[pos+10]<<8)|b[pos+11];
-        var unit = b[pos+16];
-        if (unit === 1 && pX > 0) return Math.round(pX / 39.3701);
-        return null;
+    var statusText = isReady ? 'Quote ready' : 'Waiting for quote';
+    var deleteBtn = !isBanner ? '<button onclick="window.deleteQuote(this.dataset.qnum)" data-qnum="' + quoteNum + '" style="background:none;border:none;cursor:pointer;color:#c4b89a;font-size:18px;padding:0 4px;" title="Delete quote" onclick="event.stopPropagation()">&#10005;</button>' : '';
+
+    var detailId = 'quote-detail-' + (isBanner ? 'banner-' : '') + quoteNum;
+    var headerHtml =
+      '<div class="order-row" onclick="window.toggleQuoteById(\'' + detailId + '\')">' +
+        '<div class="order-info">' +
+          '<div class="order-num">Vector Quote' + (first.quote_number ? ' #' + first.quote_number : '') + '' + '</div>' +
+          '<div class="order-sub">' + date + ' &middot; ' + group.length + ' design' + (group.length !== 1 ? 's' : '') + ' &middot; ' + statusText + '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          (isReady && paymentLink ? '<a href="' + paymentLink + '" class="btn-pay" target="_blank" onclick="event.stopPropagation()">View &amp; Pay Invoice &rarr;</a>' : '') +
+          deleteBtn +
+          '<div class="order-chev">&#9662;</div>' +
+        '</div>' +
+      '</div>';
+
+    var detailHtml = '<div class="order-detail" id="' + detailId + '" style="display:none;">';
+    detailHtml += '<div class="grid">';
+    group.sort(function(a, b) { var an = a.base_name || a.id; var bn = b.base_name || b.id; return an.localeCompare(bn, undefined, {numeric: true}); });
+    group.forEach(function(q, i) {
+      var fid = q.id;
+      var subtaskId = q.subtask_id || '';
+      detailHtml += '<div class="card original" id="qcard-' + fid + '" data-fid="' + fid + '" data-subtask="' + subtaskId + '" data-email="' + (q.customer_email||'') + '" data-label="Design ' + (i+1) + '" data-preview="' + (q.preview_url||'') + '">';
+      detailHtml += '<div class="card-header"><div><div class="design-name">Design ' + (i+1) + '</div><div class="design-service">VECTOR ART</div>' + (q.original_file_name ? '<div class="design-filename" title="' + q.original_file_name + '">' + q.original_file_name + '</div>' : '') + '</div></div>';
+      detailHtml += '<div class="files-list">';
+      if (q.preview_url) {
+        detailHtml += '<div class="file-row">';
+        detailHtml += '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + q.preview_url + '" data-lbl="Design ' + (i+1) + '">';
+        detailHtml += '<img src="' + q.preview_url + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">';
+        detailHtml += '</div>';
+        detailHtml += '<div class="file-info"><div class="file-label">Original upload</div><div class="file-meta">Submitted file</div></div>';
+        
+        detailHtml += '</div>';
       }
-      pos += 12 + len;
-    }
-    return null;
-  }
-
-  /* ---- DPI DISPLAY ---- */
-  function updateDPI() {
-    var dpiBox = $('dt-dpi-box'), noMeta = $('dt-no-meta-notice');
-    if (!state.nativePixelW) { dpiBox.style.display='none'; noMeta.style.display='none'; return; }
-    var wIn = toIn(parseFloat($('dt-canvas-w').value)||0);
-    if (!wIn) {
-      dpiBox.style.display = 'none';
-      noMeta.style.display = state.hasMetadata ? 'none' : 'flex';
-      return;
-    }
-    noMeta.style.display = 'none';
-    var dpi = Math.round(state.nativePixelW / wIn);
-    dpiBox.style.display = 'block';
-    $('dt-dpi-val').textContent = dpi + ' DPI';
-    var pct = Math.min(100, (dpi/300)*100);
-    var bar = $('dt-dpi-bar');
-    bar.style.width = pct + '%';
-    var msg = $('dt-dpi-msg');
-    if (dpi >= 300) {
-      bar.style.background='#4caf7d'; msg.className='dt-dpi-msg good'; msg.textContent='Great — ready for DTF print.';
-    } else if (dpi >= 150) {
-      bar.style.background='#f5a623'; msg.className='dt-dpi-msg warn'; msg.textContent='OK for small prints. Scale down or use a higher resolution file for best results.';
-    } else {
-      bar.style.background='#e05c2d'; msg.className='dt-dpi-msg bad'; msg.textContent='Too low — will print blurry. Use a higher resolution file.';
-    }
-  }
-
-  /* ---- ALPHA SCAN ---- */
-  function hasSemiTransparentPixels(imgCanvas) {
-    var d = makeCanvas(imgCanvas.width, imgCanvas.height, imgCanvas).getContext('2d')
-              .getImageData(0,0,imgCanvas.width,imgCanvas.height).data;
-    for (var i=3; i<d.length; i+=4) { if (d[i]>0 && d[i]<255) return true; }
-    return false;
-  }
-
-  function updateAlphaSection() {
-    var section = $('dt-alpha-section');
-    var label = $('dt-thresh-label');
-    var design = getSelectedDesign();
-    if (!design) { section.style.display='none'; if(label) label.classList.remove('dt-thresh-flash'); return; }
-    var hasSemi = hasSemiTransparentPixels(design.originalCanvas);
-    section.style.display = hasSemi ? 'block' : 'none';
-    if (label) {
-      if (hasSemi && !$('dt-thresh-check').checked) {
-        label.classList.add('dt-thresh-flash');
-      } else {
-        label.classList.remove('dt-thresh-flash');
+      detailHtml += '</div>';
+      var qNoticeLabel = q.status === 'quote_ready' ? 'QUOTE READY — AWAITING PAYMENT' : 'AWAITING QUOTE';
+      var qNoticeText = q.status === 'quote_ready' ? 'Your quote is ready. Please make payment to start your order.' : 'This is your uploaded file. We\'ll send you an invoice when your quote is ready.';
+      detailHtml += '<div class="waiting-notice"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="waiting-label">' + qNoticeLabel + '</div><div class="waiting-text">' + qNoticeText + '</div></div></div>';
+      detailHtml += '<div class="actions" id="qact-q-' + fid + '">';
+      detailHtml += '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>';
+      if (subtaskId) {
+        detailHtml += '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em,this)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="Design ' + (i+1) + '" data-em="' + (q.customer_email||'') + '">&#9999; Request Edit</button>';
       }
-    }
+      detailHtml += '</div></div>';
+    });
+    detailHtml += '</div></div>';
+
+    card.innerHTML = headerHtml + detailHtml;
+    return card;
   }
 
-  /* ---- ZOOM ---- */
-  function setZoom(z) {
-    z = Math.max(0.1, Math.min(4, z)); state.zoom = z;
-    artboard.style.transform = 'scale('+z+')';
-    if (z > 1) {
-      artboard.style.transformOrigin = 'top left';
-      var scaledW = Math.round((mainCanvas.offsetWidth||100) * z);
-      var scaledH = Math.round((mainCanvas.offsetHeight||100) * z);
-      artboard.style.marginBottom = scaledH + 'px';
-      artboard.style.marginRight  = scaledW + 'px';
-      viewport.style.alignItems     = 'flex-start';
-      viewport.style.justifyContent = 'flex-start';
-    } else {
-      artboard.style.transformOrigin = 'center center';
-      artboard.style.marginBottom = '';
-      artboard.style.marginRight  = '';
-      viewport.style.alignItems     = 'center';
-      viewport.style.justifyContent = 'center';
-    }
-    $('dt-zoom-val').textContent = Math.round(z*100)+'%';
-  }
-  $('dt-zoom-in').addEventListener('click', function(){ setZoom(+(state.zoom+0.25).toFixed(2)); });
-  $('dt-zoom-out').addEventListener('click', function(){ setZoom(+(state.zoom-0.25).toFixed(2)); });
-  $('dt-zoom-fit').addEventListener('click', function(){ setZoom(1); });
+  window.openQuoteHistory = function(fid) {
+    var card = document.getElementById('qcard-' + fid);
+    if (!card) card = document.querySelector('[data-fid="' + fid + '"]');
+    var label = card ? (card.dataset.label || 'Design') : 'Design';
+    var subtaskId = card ? (card.dataset.subtask || '') : '';
 
-  /* ---- DESIGN UPLOAD ---- */
-  $('dt-design-upload').addEventListener('change', function(e) {
-    var files = Array.from(e.target.files), loaded = 0;
-    files.forEach(function(file) {
-      (function(f) {
-        var reader = new FileReader();
-        reader.onload = function(ev) {
-          var buf = ev.target.result;
-          var dpi = readPNGDPI(buf);
-          var url = URL.createObjectURL(new Blob([buf],{type:'image/png'}));
-          var img = new Image();
-          img.onload = function() {
-            var id = uid();
-            var isFirst = !state.canvasW;
-            var layer = { id:id, name:f.name.replace(/\.[^.]+$/,''), img:img,
-              originalCanvas: makeCanvas(img.naturalWidth, img.naturalHeight, img),
-              active:true, distresses:{} };
-            state.designLayers.push(layer);
-            if (isFirst) {
-              state.nativePixelW = img.naturalWidth;
-              state.hasMetadata = (dpi !== null);
-              if (dpi && dpi > 0) {
-                var pW = img.naturalWidth/dpi, pH = img.naturalHeight/dpi;
-                state.canvasW = Math.round(pW*300); state.canvasH = Math.round(pH*300);
-                $('dt-canvas-w').value = fromIn(pW); $('dt-canvas-h').value = fromIn(pH);
-              } else {
-                state.canvasW = img.naturalWidth; state.canvasH = img.naturalHeight;
-                $('dt-canvas-w').value = ''; $('dt-canvas-h').value = '';
-              }
-              mainCanvas.width=state.canvasW; mainCanvas.height=state.canvasH;
-              mainCanvas.style.display='block'; emptyEl.style.display='none';
-              updateCanvasInputs(); syncDisplay(); updateDPI();
-            }
-            state.selectedDesignId = id;
-            URL.revokeObjectURL(url);
-            if (++loaded === files.length) { renderDesignList(); scheduleRender(); updateAlphaSection(); }
-          };
-          img.src = url;
-        };
-        reader.readAsArrayBuffer(f);
-      })(file);
-    });
-    e.target.value = '';
-  });
+    var fileQuery = subtaskId
+      ? SUPABASE_URL + '/rest/v1/files?clickup_subtask_id=eq.' + subtaskId + '&limit=1'
+      : SUPABASE_URL + '/rest/v1/files?id=eq.' + fid + '&limit=1';
 
-  /* ---- DISTRESS UPLOAD ---- */
-  $('dt-distress-upload').addEventListener('change', function(e) {
-    Array.from(e.target.files).forEach(function(file) {
-      (function(f) {
-        var url = URL.createObjectURL(f);
-        var img = new Image();
-        img.onload = function() {
-          state.distressTextures.push({ id:uid(), name:f.name.replace(/\.[^.]+$/,''),
-            img:img, src:url, naturalW:img.naturalWidth, naturalH:img.naturalHeight,
-            aspect:img.naturalWidth/img.naturalHeight });
-          renderDistressList(); renderActiveDistresses();
-        };
-        img.src = url;
-      })(file);
-    });
-    e.target.value = '';
-  });
+    fetch(fileQuery, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+    }).then(function(r){ return r.json(); }).then(function(fileRows) {
+      var fileRow = fileRows && fileRows[0] ? fileRows[0] : null;
+      var realFid = fileRow ? fileRow.id : fid;
+      var previewSrc = fileRow ? (fileRow.original_preview_url || fileRow.preview_url || '') : '';
 
-  /* ---- RENDER DESIGN LIST ---- */
-  function renderDesignList() {
-    designListEl.innerHTML = '';
-    if (!state.designLayers.length) { designListEl.innerHTML='<div class="dt-hint">No designs uploaded yet.</div>'; return; }
-    state.designLayers.forEach(function(layer) {
-      var isSel = layer.id === state.selectedDesignId;
-      var item = document.createElement('div');
-      item.className = 'dt-layer-item'+(isSel?' selected':'');
+      if (!previewSrc && card) {
+        var img = card.querySelector('.file-thumb img');
+        if (img) previewSrc = img.src;
+      }
+      // Also try the data-src attribute directly (quotes store preview_url here)
+      if (!previewSrc && card) {
+        var thumb = card.querySelector('.file-thumb');
+        if (thumb && thumb.dataset.src) previewSrc = thumb.dataset.src;
+      }
+      // Final fallback: use preview_url stored directly on the card
+      if (!previewSrc && card && card.dataset.preview) previewSrc = card.dataset.preview;
 
-      var eye = document.createElement('button');
-      eye.className = 'dt-eye-btn'+(layer.active?' on':'');
-      eye.innerHTML = layer.active
-        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
-        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
-      eye.addEventListener('click', function(ev){ ev.stopPropagation(); layer.active=!layer.active; renderDesignList(); scheduleRender(); });
-      item.appendChild(eye);
+      Promise.all([
+        fetch(SUPABASE_URL + '/rest/v1/file_versions?file_id=eq.' + realFid + '&order=version.asc', {
+          headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+        }).then(function(r){ return r.json(); }),
+        fetch(SUPABASE_URL + '/rest/v1/edit_requests?file_id=eq.' + realFid + '&order=created_at.asc', {
+          headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON }
+        }).then(function(r){ return r.json(); })
+      ]).then(function(res) {
+        var versions = res[0] || [];
+        var requests = res[1] || [];
 
-      var thumb = document.createElement('canvas');
-      thumb.width=36; thumb.height=36; thumb.className='dt-layer-thumb'; thumb.style.background='#fff';
-      thumb.getContext('2d').drawImage(layer.originalCanvas,0,0,36,36);
-      item.appendChild(thumb);
-
-      var info = document.createElement('div'); info.className='dt-layer-info';
-      var nm = document.createElement('div'); nm.className='dt-layer-name'; nm.textContent=layer.name;
-      var sub = document.createElement('div'); sub.className='dt-layer-sub';
-      var ac = Object.keys(layer.distresses).length;
-      sub.textContent = isSel ? 'Selected' : (ac ? ac+' distress(es)' : 'No distress');
-      info.appendChild(nm); info.appendChild(sub); item.appendChild(info);
-
-      var del = document.createElement('button'); del.className='dt-layer-del'; del.innerHTML='&#215;';
-      del.addEventListener('click', function(ev) {
-        ev.stopPropagation();
-        state.designLayers = state.designLayers.filter(function(d){ return d.id!==layer.id; });
-        if (state.selectedDesignId===layer.id)
-          state.selectedDesignId = state.designLayers.length ? state.designLayers[0].id : null;
-        if (!state.designLayers.length) {
-          mainCanvas.style.display='none'; emptyEl.style.display='flex';
-          state.canvasW=0; state.canvasH=0; state.nativePixelW=0; state.hasMetadata=false;
-          $('dt-canvas-w').value=''; $('dt-canvas-h').value='';
-          $('dt-size-badge').style.display='none'; $('dt-dpi-box').style.display='none';
-          $('dt-no-meta-notice').style.display='none'; $('dt-alpha-section').style.display='none';
-          $('dt-design-reset-size').style.display='none';
-          infoEl.textContent='';
-          $('dt-thresh-check').checked=false;
-          $('dt-thresh-panel').style.display='none';
-          $('dt-thresh-info').style.display='none';
-          $('dt-threshold').value=128;
-          $('dt-thresh-val').textContent='128';
-        }
-        renderDesignList(); renderDistressList(); renderActiveDistresses(); scheduleRender(); updateAlphaSection(); updateDPI();
-      });
-      item.appendChild(del);
-
-      item.addEventListener('click', function() {
-        state.selectedDesignId=layer.id; state.selectedDistressId=null;
-        distressCtrl.style.display='none';
-        renderDesignList(); renderDistressList(); renderActiveDistresses(); updateAlphaSection();
-        $('dt-design-reset-size').style.display = 'block';
-      });
-      designListEl.appendChild(item);
-    });
-  }
-
-  /* track which groups are open */
-  var openGroups = {};
-
-  /* ---- RENDER DISTRESS LIST ---- */
-  function renderDistressList() {
-    distressListEl.innerHTML = '';
-    if (!state.distressTextures.length) { distressListEl.innerHTML='<div class="dt-hint">No distress textures loaded.</div>'; return; }
-    var design = getSelectedDesign();
-    var groups = [], seen = {};
-    state.distressTextures.forEach(function(tex) {
-      var g = tex.group || 'Uploaded';
-      if (!seen[g]) { seen[g] = true; groups.push(g); }
-    });
-    groups.forEach(function(groupName) {
-      var isOpen = !!openGroups[groupName];
-      var headerRow = document.createElement('div');
-      headerRow.className = 'dt-group-header';
-      headerRow.innerHTML = '<span class="dt-group-label">'+groupName+'</span>'
-        +'<svg class="dt-group-chevron'+(isOpen?' open':'')+'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
-      distressListEl.appendChild(headerRow);
-      var itemsWrap = document.createElement('div');
-      itemsWrap.className = 'dt-group-items'+(isOpen?' open':'');
-      headerRow.addEventListener('click', function() {
-        openGroups[groupName] = !openGroups[groupName];
-        itemsWrap.classList.toggle('open', !!openGroups[groupName]);
-        headerRow.querySelector('.dt-group-chevron').classList.toggle('open', !!openGroups[groupName]);
-      });
-      state.distressTextures.filter(function(t){ return (t.group||'Uploaded')===groupName; }).forEach(function(tex) {
-      var isApplied = design && !!design.distresses[tex.id];
-      var item = document.createElement('div');
-      item.className = 'dt-layer-item dt-distress-item'+(isApplied?' applied':'');
-
-      var thumb = document.createElement('img');
-      thumb.className='dt-layer-thumb'; thumb.src=tex.src;
-      if (tex.group === 'Texture Borders') { thumb.style.objectFit='contain'; thumb.style.background='#111'; }
-      item.appendChild(thumb);
-
-      var info = document.createElement('div'); info.className='dt-layer-info';
-      var nm = document.createElement('div'); nm.className='dt-layer-name'; nm.textContent=tex.name;
-      var sub = document.createElement('div'); sub.className='dt-layer-sub';
-      sub.textContent = isApplied ? 'Applied -- click to edit / click again to remove' : (design ? 'Click to apply' : 'Select a design first');
-      info.appendChild(nm); info.appendChild(sub); item.appendChild(info);
-
-      if (!tex.group || tex.group === 'Uploaded') {
-        var del = document.createElement('button'); del.className='dt-layer-del'; del.innerHTML='&#215;'; del.title='Remove texture';
-        del.addEventListener('click', function(ev) {
-          ev.stopPropagation();
-          state.designLayers.forEach(function(d){ delete d.distresses[tex.id]; });
-          state.distressTextures = state.distressTextures.filter(function(t){ return t.id!==tex.id; });
-          URL.revokeObjectURL(tex.src);
-          if (state.selectedDistressId===tex.id) { state.selectedDistressId=null; distressCtrl.style.display='none'; }
-          renderDistressList(); renderActiveDistresses(); scheduleRender();
+        var versionGroups = {};
+        versions.forEach(function(v){
+          if (!versionGroups[v.version]) versionGroups[v.version] = [];
+          versionGroups[v.version].push(v);
         });
-        item.appendChild(del);
-      }
 
-      item.addEventListener('click', function() {
-        var d = getSelectedDesign(); if (!d) return;
-        if (d.distresses[tex.id]) {
-          if (state.selectedDistressId===tex.id) { delete d.distresses[tex.id]; state.selectedDistressId=null; distressCtrl.style.display='none'; }
-          else { state.selectedDistressId=tex.id; updateDistressControls(); distressCtrl.style.display='block'; }
-        } else {
-          var isBorder = tex.group === 'Texture Borders';
-          var dw = isBorder ? state.canvasW : tex.naturalW;
-          var dh = isBorder ? state.canvasH : tex.naturalH;
-          var ox = isBorder ? 0 : Math.round((state.canvasW-tex.naturalW)/2);
-          var oy = isBorder ? 0 : Math.round((state.canvasH-tex.naturalH)/2);
-          d.distresses[tex.id] = { drawW:dw, drawH:dh, offsetX:ox, offsetY:oy, rotation:0 };
-          state.selectedDistressId=tex.id; updateDistressControls(); distressCtrl.style.display='block';
+        if (!versionGroups[1]) {
+          versionGroups[1] = [{
+            version: 1,
+            download_url: previewSrc,
+            preview_url: previewSrc,
+            uploaded_at: fileRow ? fileRow.created_at : null
+          }];
         }
-        renderDistressList(); renderActiveDistresses(); scheduleRender();
+
+        var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
+        var latestVersion = Math.max.apply(null, versionNums);
+
+        var timeline = [];
+        versionNums.forEach(function(vn){
+          var filesAtV = versionGroups[vn];
+          var ts = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).getTime() : 0;
+          timeline.push({ type: 'version', vn: vn, filesAtV: filesAtV, ts: ts });
+        });
+        requests.forEach(function(r){
+          var ts = r.created_at ? new Date(r.created_at).getTime() : 0;
+          timeline.push({ type: 'request', data: r, ts: ts });
+        });
+        timeline.sort(function(a,b){ return a.ts - b.ts; });
+
+        var bodyHtml = '';
+        timeline.forEach(function(item){
+          if (item.type === 'version') {
+            var vn = item.vn;
+            var filesAtV = item.filesAtV;
+            var isCur = vn === latestVersion;
+            var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+            bodyHtml += '<div class="vgroup">' +
+              '<div class="vgroup-head">' +
+                '<div class="vgroup-num ' + (isCur?'current':'old') + '">' + (vn === 1 ? 'Orig' : 'v' + (vn - 1)) + '</div>' +
+                '<div class="vgroup-label">' + (vn === 1 ? 'Original File' : 'Version ' + (vn - 1)) + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '</div>' +
+                '<div class="vgroup-date">' + date + '</div>' +
+              '</div>' +
+              '<div class="vgroup-files">';
+            filesAtV.forEach(function(v, i){
+              var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : 'Design file';
+              var thumbSrc = previewSrc || v.preview_url || '';
+              var dlUrl = v.download_url || previewSrc || '#';
+              var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+              bodyHtml += '<div class="file-row">' +
+                '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' ' + (vn === 1 ? 'Original' : 'v' + (vn-1)) + '">' + thumb + '</div>' +
+                '<div class="file-info"></div>' +
+                '<button class="file-dl" data-url="' + dlUrl + '" onclick="window.downloadFile(this.dataset.url)">&#11015; Download</button>' +
+              '</div>';
+            });
+            bodyHtml += '</div></div>';
+          } else {
+            var r = item.data;
+            var ip = r.status === 'in_progress';
+            var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+            var atts = r.attachments;
+            if (typeof atts === 'string') { try { atts = JSON.parse(atts); } catch(e){ atts = []; } }
+            var axHtml = '';
+            if (atts && atts.length) {
+              axHtml = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">' +
+                atts.map(function(a){
+                  return '<a href="' + a.url + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border:1px solid #e8e2d8;border-radius:6px;font-size:11px;color:#3d3020;text-decoration:none;">' +
+                    '<span style="color:#00aeef;">&#128206;</span>' +
+                    '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.name || 'attachment') + '</span>' +
+                    '<span style="color:#00aeef;font-weight:600;">View</span>' +
+                  '</a>';
+                }).join('') + '</div>';
+            }
+            bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
+              '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
+              (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> EDIT REQUESTED' : 'EDIT REQUEST &middot; RESOLVED') +
+              '</div><span class="req-date">' + rDate + '</span></div>' +
+              '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
+              axHtml + '</div>';
+          }
+        });
+
+        document.getElementById('drawer-root').innerHTML =
+          '<div class="overlay" onclick="closeDrawer()"><div class="drawer" onclick="event.stopPropagation()">' +
+          '<div class="drawer-head"><div><div class="drawer-title">' + label + ' &mdash; History</div>' +
+          '<div class="drawer-sub">' + versionNums.length + ' version' + (versionNums.length!==1?'s':'') + ' &middot; ' + requests.length + ' request' + (requests.length!==1?'s':'') + '</div></div>' +
+          '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
+          '<div class="drawer-body">' + bodyHtml + '</div></div></div>';
+        setTimeout(function(){
+          var body = document.querySelector('.drawer-body');
+          if (body) body.scrollTop = body.scrollHeight;
+        }, 50);
       });
-      itemsWrap.appendChild(item);
-      });
-      distressListEl.appendChild(itemsWrap);
     });
+  };
+
+  window.toggleQuoteById = function(detailId) {
+    var detail = document.getElementById(detailId);
+    if (!detail) return;
+    detail.style.display = detail.style.display !== 'none' ? 'none' : 'block';
+  };
+
+  window.toggleQuote = function(quoteNum) {
+    window.toggleQuoteById('quote-detail-' + quoteNum);
+  };
+
+  window.openQuoteEdit = function(fid, subtaskId, label, ce, btn) {
+    if (!subtaskId) {
+      var card = document.getElementById('qcard-' + fid) || document.querySelector('[data-fid="' + fid + '"]');
+      if (!card) return;
+      subtaskId = card.dataset.subtask || '';
+      label = card.dataset.label || 'Design';
+      ce = card.dataset.email || _customerEmail || '';
+    }
+    _attachments[fid] = [];
+    var actEl = btn ? btn.closest('.actions') : null;
+    if (!actEl) actEl = document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
+    _attachments[fid + '__el'] = actEl;
+    if (!actEl) return;
+    var ta = document.createElement('textarea');
+    ta.id = 'qnote-' + fid;
+    ta.placeholder = 'Describe what needs to change on ' + label + '...';
+    var fi = document.createElement('input');
+    fi.type = 'file'; fi.id = 'qfileinput-' + fid; fi.multiple = true; fi.style.display = 'none';
+    fi.onchange = function(){ handleAttach(fid); };
+    var ab = document.createElement('button');
+    ab.className = 'btn-attach';
+    ab.onclick = function(){ fi.click(); };
+    ab.innerHTML = '&#128206; Attach files (optional)';
+    var axList = document.createElement('div');
+    axList.className = 'attachments-list'; axList.id = 'ax-list-' + fid;
+    var btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-cancel'; cancelBtn.style.flex = '1';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = function(){ window.cancelQuoteEdit(fid, subtaskId); };
+    var sendBtn = document.createElement('button');
+    sendBtn.className = 'btn btn-send'; sendBtn.style.flex = '2';
+    sendBtn.textContent = 'Send Request';
+    sendBtn.onclick = function(){ window.sendQuoteEdit(fid, subtaskId, label, ce); };
+    btnRow.appendChild(cancelBtn); btnRow.appendChild(sendBtn);
+    actEl.innerHTML = '';
+    actEl.appendChild(ta); actEl.appendChild(fi); actEl.appendChild(ab); actEl.appendChild(axList); actEl.appendChild(btnRow);
+  };
+
+  window.cancelQuoteEdit = function(fid, subtaskId) {
+    var actEl = _attachments[fid + '__el'] || document.getElementById('qact-q-' + fid) || document.getElementById('qact-' + fid);
+    delete _attachments[fid];
+    delete _attachments[fid + '__el'];
+    if (!actEl) return;
+    var card = document.getElementById('qcard-' + fid) || document.querySelector('[data-fid="' + fid + '"]');
+    var label = card ? (card.dataset.label || 'Design') : 'Design';
+    var ce = card ? (card.dataset.email || _customerEmail || '') : (_customerEmail || '');
+    actEl.innerHTML = '<button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' +
+      (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em,this)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
+  };
+
+  window.sendQuoteEdit = function(fid, subtaskId, label, ce) {
+    var _qactEl = _attachments[fid + '__el'] || document.getElementById('qact-q-' + fid);
+    var noteEl = _qactEl ? _qactEl.querySelector('textarea') : document.getElementById('qnote-' + fid);
+    var note = noteEl ? noteEl.value.trim() : '';
+    if (!note) return;
+    var ax = (_attachments[fid] || []).filter(function(a){ return a && a.url; });
+    var stillUploading = (_attachments[fid] || []).some(function(a){ return a && a.uploading; });
+    if (stillUploading) { alert('Please wait for attachments to finish uploading.'); return; }
+    if (_qactEl) _qactEl.innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
+    var attachmentsPayload = ax.map(function(a){ return {name: a.name, url: a.url}; });
+    var supabaseInsert = fetch(SUPABASE_URL + '/rest/v1/edit_requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'return=representation' },
+      body: JSON.stringify({ file_id: fid, customer_note: note, status: 'in_progress', attachments: attachmentsPayload })
+    });
+    var zapierNotify = fetch('/api/edit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ clickup_subtask_id: subtaskId, file_name: label, note: note, customer_email: ce, file_id: fid, attachments: attachmentsPayload })
+    });
+    Promise.all([supabaseInsert, zapierNotify]).then(function(results) {
+      if (!results[0].ok) throw new Error('Insert failed');
+      delete _attachments[fid];
+      delete _attachments[fid + '__el'];
+      if (_qactEl) _qactEl.innerHTML = '<div class="sent">&#10003; Sent! Check your email for updates.</div><button class="btn btn-hist" onclick="window.openQuoteHistory(this.dataset.fid)" data-fid="' + fid + '">&#128339; History</button>' + (subtaskId ? '<button class="btn btn-edit" onclick="window.openQuoteEdit(this.dataset.fid,this.dataset.sub,this.dataset.lbl,this.dataset.em,this)" data-fid="' + fid + '" data-sub="' + subtaskId + '" data-lbl="' + label + '" data-em="' + ce + '">&#9999; Request Edit</button>' : '');
+    }).catch(function() {
+      if (_qactEl) _qactEl.innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
+    });
+  };
+
+  function buildQuoteCard(q) {
+    return buildQuoteGroupCard([q], false);
   }
 
-  /* ---- RENDER ACTIVE DISTRESSES ---- */
-  function renderActiveDistresses() {
-    var section = $('dt-active-section');
-    var list = $('dt-active-list');
-    var design = getSelectedDesign();
-    list.innerHTML = '';
-    if (!design || !Object.keys(design.distresses).length) {
-      section.style.display = 'none';
+  function buildOrderCard(order) {
+    var card = document.createElement('div');
+    card.className = 'order-card';
+    card.id = 'order-' + order.shopify_order_id;
+    card.dataset.expanded = 'false';
+    var filesCount = order.files.length;
+    var inProg  = order.files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'in_progress'; }).length;
+    var delivered = order.files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'delivered'; }).length;
+    var orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    var status = inProg ? 'In progress' : (delivered === filesCount && filesCount > 0 ? 'Ready' : 'Awaiting artwork');
+    card.innerHTML =
+      '<div class="order-row" onclick="toggleOrder(\'' + order.shopify_order_id + '\')">' +
+        '<div class="order-info"><div class="order-num">Order #' + order.shopify_order_number + '</div>' +
+        '<div class="order-sub">' + orderDate + ' &middot; ' + filesCount + ' design' + (filesCount!==1?'s':'') + ' &middot; ' + status + '</div></div>' +
+        '<div class="order-chev">&#9662;</div>' +
+      '</div>' +
+      '<div class="order-detail" id="detail-' + order.shopify_order_id + '" style="display:none"></div>';
+    return card;
+  }
+
+  window.toggleOrder = function(orderId) {
+    var card = document.getElementById('order-' + orderId);
+    var detail = document.getElementById('detail-' + orderId);
+    if (card.dataset.expanded === 'true') {
+      detail.style.display = 'none';
+      card.dataset.expanded = 'false';
       return;
     }
-    section.style.display = 'block';
-    Object.keys(design.distresses).forEach(function(texId) {
-      var tex = state.distressTextures.find(function(t){ return t.id===texId; });
-      if (!tex) return;
-      var isSelected = state.selectedDistressId === texId;
-      var item = document.createElement('div');
-      item.className = 'dt-layer-item dt-distress-item applied' + (isSelected ? ' selected' : '');
+    card.dataset.expanded = 'true';
+    detail.style.display = 'block';
+    renderOrderDetail(orderId);
+  };
 
-      var thumb = document.createElement('img');
-      thumb.className = 'dt-layer-thumb'; thumb.src = tex.src;
-      if (tex.group === 'Texture Borders') { thumb.style.objectFit='contain'; thumb.style.background='#111'; }
-      item.appendChild(thumb);
+  function renderOrderDetail(orderId) {
+    var order = _ordersCache.find(function(o){ return String(o.shopify_order_id) === String(orderId); });
+    if (!order) return;
+    var detail = document.getElementById('detail-' + orderId);
+    var files = order.files;
+    var inProg  = files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'in_progress'; }).length;
+    var revised = files.filter(function(f){ return f.is_revised && (f.revision_status || '').toLowerCase() === 'delivered'; }).length;
+    var waiting = files.filter(function(f){ return (f.revision_status || '').toLowerCase() !== 'delivered' && (f.revision_status || '').toLowerCase() !== 'in_progress'; }).length;
+    var html = '<div class="files-header"><div><div class="files-title">Your Artwork Files</div>';
+    html += '<div class="files-subtitle">' + files.length + ' design' + (files.length!==1?'s':'');
+    if (revised) html += ' &middot; ' + revised + ' revised';
+    if (inProg)  html += ' &middot; ' + inProg + ' in progress';
+    if (waiting) html += ' &middot; ' + waiting + ' awaiting';
+    html += '</div></div><div class="files-badges">';
+    if (inProg)  html += '<div class="badge badge-progress"><span class="pulse" style="width:7px;height:7px;background:#00aeef;"></span>' + inProg + ' IN PROGRESS</div>';
+    if (revised) html += '<div class="badge badge-revised">&#10003; ' + revised + ' REVISED</div>';
+    if (waiting) html += '<div class="badge badge-waiting">&#9203; ' + waiting + ' AWAITING</div>';
+    html += '</div></div><div class="grid" id="grid-' + orderId + '"></div>';
+    html += '<div class="footer-note">After requesting an edit, you\'ll receive a reply by email. Just reply back to continue the conversation.</div>';
+    detail.innerHTML = html;
+    var grid = document.getElementById('grid-' + orderId);
+    files.forEach(function(f,i){ grid.appendChild(buildCard(f,i,_customerEmail)); });
+  }
 
-      var info = document.createElement('div'); info.className = 'dt-layer-info';
-      var nm = document.createElement('div'); nm.className = 'dt-layer-name'; nm.textContent = tex.name;
-      var sub = document.createElement('div'); sub.className = 'dt-layer-sub';
-      sub.textContent = isSelected ? 'Editing' : 'Click to edit';
-      info.appendChild(nm); info.appendChild(sub); item.appendChild(info);
+  function buildCard(f,idx,ce) {
+    var inProg     = (f.revision_status || '').toLowerCase() === 'in_progress';
+    var isDelivered = (f.revision_status || '').toLowerCase() === 'delivered';
+    var isAwaiting  = !isDelivered && !inProg;
+    var isVectorArt = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+    var hasHistory = true;
+    var label      = 'Design ' + (idx+1);
+    var subLabel   = isAwaiting ? 'Original upload' : (f.is_revised ? 'Latest revision' : 'Final artwork');
+    var statusBadge = f.is_revised ? '<span class="card-status-badge revised">REVISED</span>' : '';
+    var card = document.createElement('div');
+    card.className = 'card' + (inProg && !isVectorArt?' inprogress':(f.is_revised?' revised':(isAwaiting?' original':'')));
+    card.id = 'card-' + f.id;
+    card.dataset.file  = JSON.stringify(f);
+    card.dataset.label = label;
+    card.dataset.ce    = ce||'';
+    card.dataset.fid   = f.id;
 
-      var del = document.createElement('button'); del.className = 'dt-layer-del'; del.innerHTML = '&#215;';
-      del.addEventListener('click', function(ev) {
-        ev.stopPropagation();
-        delete design.distresses[texId];
-        if (state.selectedDistressId === texId) { state.selectedDistressId = null; distressCtrl.style.display = 'none'; }
-        renderActiveDistresses(); renderDistressList(); scheduleRender();
-      });
-      item.appendChild(del);
-
-      item.addEventListener('click', function() {
-        state.selectedDistressId = texId;
-        updateDistressControls();
-        distressCtrl.style.display = 'block';
-        renderActiveDistresses(); renderDistressList();
-      });
-      list.appendChild(item);
+    var filesListHtml = '<div class="files-list">';
+    f.current_files.forEach(function(cf, i){
+      var fileLabel = f.current_files.length > 1 ? 'File ' + (i+1) : subLabel;
+      var fileMeta = f.current_files.length > 1 ? subLabel : (cf.version === 1 ? 'Original file' : 'Version ' + (cf.version - 1));
+      var previewSrc = isVectorArt ? (f.original_preview_url || f.preview_url || cf.preview_url || '') : (cf.preview_url || '');
+      var thumb = previewSrc ? '<img src="' + previewSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+      filesListHtml += '<div class="file-row">' +
+        '<div class="file-thumb" onclick="viewImg(\'' + (previewSrc||'') + '\',\'' + label + ' \u2014 ' + fileLabel + '\')">' + thumb + '</div>' +
+        '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">' + fileMeta + '</div></div>' +
+        (f.latest_version > 1 ? '<a href="' + (cf.download_url||'#') + '" class="file-dl" target="_blank">&#11015; Download</a>' : '') +
+      '</div>';
     });
-  }
+    filesListHtml += '</div>';
 
-  function updateDistressControls() {
-    setEraserActive(false);
-    var design=getSelectedDesign(), tex=getSelectedDistress();
-    if (!design||!tex||!design.distresses[tex.id]) { distressCtrl.style.display='none'; return; }
-    $('dt-border-halftone-section').style.display = (tex.group === 'Texture Borders') ? 'block' : 'none';
-    var tr=design.distresses[tex.id];
-    $('dt-distress-ctrl-name').textContent=tex.name;
-    $('dt-dist-w').value=fromIn(tr.drawW/300); $('dt-dist-h').value=fromIn(tr.drawH/300);
-    distressCtrl.querySelectorAll('.dt-rotate-btn').forEach(function(b){ b.classList.toggle('active',parseInt(b.dataset.rot)===tr.rotation); });
-  }
-
-  /* ---- CORE RENDER ---- */
-  function render() {
-    var W=state.canvasW, H=state.canvasH; if (!W||!H) return;
-    ctx.clearRect(0,0,W,H);
-    state.designLayers.forEach(function(layer) {
-      if (!layer.active) return;
-      var work=makeCanvas(W,H), wCtx=work.getContext('2d');
-      wCtx.drawImage(layer.originalCanvas, Math.round((W-layer.originalCanvas.width)/2), Math.round((H-layer.originalCanvas.height)/2));
-      Object.keys(layer.distresses).forEach(function(texId) {
-        var tex=state.distressTextures.find(function(t){ return t.id===texId; }); if (!tex) return;
-        var tr=layer.distresses[texId];
-        var dw=Math.round(tr.drawW), dh=Math.round(tr.drawH);
-        var cx=Math.round(tr.offsetX)+dw/2, cy=Math.round(tr.offsetY)+dh/2;
-        var tmp=makeCanvas(W,H), tCtx=tmp.getContext('2d');
-        tCtx.save(); tCtx.translate(cx,cy); tCtx.rotate(tr.rotation*Math.PI/180);
-        tCtx.drawImage(tex.img,-dw/2,-dh/2,dw,dh); tCtx.restore();
-
-        if (layer.distressHT && layer.distressHT[texId]) {
-          var invC=makeCanvas(W,H), invCtx=invC.getContext('2d');
-          invCtx.fillStyle='#fff';
-          invCtx.fillRect(0,0,W,H);
-          invCtx.globalCompositeOperation='destination-out';
-          invCtx.drawImage(layer.distressHT[texId],0,0);
-          invCtx.globalCompositeOperation='source-over';
-          if (layer.masks && layer.masks[texId]) {
-            invCtx.drawImage(layer.masks[texId],0,0);
-          }
-          wCtx.globalCompositeOperation='destination-in';
-          wCtx.drawImage(invC,0,0);
-          wCtx.globalCompositeOperation='source-over';
-        } else {
-          var px=tCtx.getImageData(0,0,W,H), d=px.data;
-          for (var i=0; i<d.length; i+=4) { var a=d[i+3]/255; d[i]=d[i+1]=d[i+2]=255; d[i+3]=Math.round((1-a)*255); }
-          tCtx.putImageData(px,0,0);
-          if (layer.masks && layer.masks[texId]) {
-            tCtx.globalCompositeOperation='destination-in';
-            tCtx.drawImage(layer.masks[texId],0,0);
-            tCtx.globalCompositeOperation='source-over';
-          }
-          wCtx.globalCompositeOperation='destination-in'; wCtx.drawImage(tmp,0,0); wCtx.globalCompositeOperation='source-over';
-        }
-      });
-      ctx.drawImage(work,0,0);
-    });
-    if ($('dt-thresh-check') && $('dt-thresh-check').checked) applyThreshold(parseInt($('dt-threshold').value));
-    updateAlphaSection();
-  }
-
-  function applyThreshold(thresh) {
-    var id=ctx.getImageData(0,0,mainCanvas.width,mainCanvas.height), d=id.data;
-    for (var i=0; i<d.length; i+=4) d[i+3]=d[i+3]<thresh?0:255;
-    ctx.putImageData(id,0,0);
-  }
-
-  $('dt-thresh-check').addEventListener('change', function(){
-    $('dt-thresh-panel').style.display=this.checked?'block':'none';
-    var label=$('dt-thresh-label');
-    if(label) label.classList.remove('dt-thresh-flash');
-    scheduleRender();
-  });
-  $('dt-threshold').addEventListener('input', function(e){ $('dt-thresh-val').textContent=e.target.value; if($('dt-thresh-check').checked) scheduleRender(); });
-  $('dt-thresh-info-btn').addEventListener('click', function(ev){ ev.stopPropagation(); var p=$('dt-thresh-info'); p.style.display=p.style.display==='none'?'block':'none'; });
-
-  /* ---- DISTRESS CONTROLS ---- */
-  var distResizeTimer=null;
-  $('dt-dist-w').addEventListener('input', function(){
-    var design=getSelectedDesign(), tex=getSelectedDistress(); if(!design||!tex||!design.distresses[tex.id]) return;
-    var tr=design.distresses[tex.id], wPx=Math.round(toIn(parseFloat(this.value)||0)*300); if(wPx<1) return;
-    if(state.lockDistress){ tr.drawH=Math.round(wPx/tex.aspect); $('dt-dist-h').value=fromIn(tr.drawH/300); }
-    tr.drawW=wPx; clearTimeout(distResizeTimer); distResizeTimer=setTimeout(scheduleRender,400);
-  });
-  $('dt-dist-h').addEventListener('input', function(){
-    var design=getSelectedDesign(), tex=getSelectedDistress(); if(!design||!tex||!design.distresses[tex.id]) return;
-    var tr=design.distresses[tex.id], hPx=Math.round(toIn(parseFloat(this.value)||0)*300); if(hPx<1) return;
-    if(state.lockDistress){ tr.drawW=Math.round(hPx*tex.aspect); $('dt-dist-w').value=fromIn(tr.drawW/300); }
-    tr.drawH=hPx; clearTimeout(distResizeTimer); distResizeTimer=setTimeout(scheduleRender,400);
-  });
-  $('dt-dist-lock').addEventListener('click', function(){
-    state.lockDistress=!state.lockDistress; this.classList.toggle('active',state.lockDistress);
-    $('dt-dist-lock-icon').innerHTML=state.lockDistress
-      ?'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'
-      :'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
-  });
-
-  $('dt-fit-btn').addEventListener('click', function(){
-    var design=getSelectedDesign(), tex=getSelectedDistress(); if(!design||!tex||!design.distresses[tex.id]) return;
-    var tr=design.distresses[tex.id]; tr.drawW=state.canvasW; tr.drawH=state.canvasH; tr.offsetX=0; tr.offsetY=0;
-    updateDistressControls(); scheduleRender();
-  });
-  $('dt-dist-reset-size').addEventListener('click', function(){
-    var design=getSelectedDesign(), tex=getSelectedDistress(); if(!design||!tex||!design.distresses[tex.id]) return;
-    var tr=design.distresses[tex.id]; tr.drawW=tex.naturalW; tr.drawH=tex.naturalH;
-    tr.offsetX=Math.round((state.canvasW-tex.naturalW)/2); tr.offsetY=Math.round((state.canvasH-tex.naturalH)/2);
-    updateDistressControls(); scheduleRender();
-  });
-  distressCtrl.querySelectorAll('.dt-rotate-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var design=getSelectedDesign(), tex=getSelectedDistress(); if(!design||!tex||!design.distresses[tex.id]) return;
-      design.distresses[tex.id].rotation=parseInt(this.dataset.rot);
-      distressCtrl.querySelectorAll('.dt-rotate-btn').forEach(function(b){ b.classList.remove('active'); });
-      this.classList.add('active'); scheduleRender();
-    });
-  });
-
-  var nudgeStep=1;
-  document.querySelectorAll('.dt-nudge-size').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      nudgeStep=parseInt(this.dataset.px);
-      document.querySelectorAll('.dt-nudge-size').forEach(function(b){ b.classList.remove('active'); });
-      this.classList.add('active');
-    });
-  });
-  function nudge(dx,dy){
-    var design=getSelectedDesign(), tex=getSelectedDistress(); if(!design||!tex||!design.distresses[tex.id]) return;
-    var tr=design.distresses[tex.id]; tr.offsetX+=dx*nudgeStep; tr.offsetY+=dy*nudgeStep; scheduleRender();
-  }
-  $('dt-nudge-up').addEventListener('click', function(){ nudge(0,-1); });
-  $('dt-nudge-down').addEventListener('click', function(){ nudge(0,1); });
-  $('dt-nudge-left').addEventListener('click', function(){ nudge(-1,0); });
-  $('dt-nudge-right').addEventListener('click', function(){ nudge(1,0); });
-  $('dt-nudge-center').addEventListener('click', function(){
-    var design=getSelectedDesign(), tex=getSelectedDistress(); if(!design||!tex||!design.distresses[tex.id]) return;
-    var tr=design.distresses[tex.id];
-    tr.offsetX=Math.round((state.canvasW-tr.drawW)/2); tr.offsetY=Math.round((state.canvasH-tr.drawH)/2); scheduleRender();
-  });
-
-  var dragging=false, dragStart={}, dragTrStart={};
-  mainCanvas.addEventListener('mousedown', function(e){
-    if(eraserActive) return;
-    var design=getSelectedDesign(), tex=getSelectedDistress(); if(!design||!tex||!design.distresses[tex.id]) return;
-    dragging=true; mainCanvas.style.cursor='grabbing';
-    var r=mainCanvas.getBoundingClientRect(), sx=mainCanvas.width/r.width, sy=mainCanvas.height/r.height;
-    dragStart={x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy};
-    var tr=design.distresses[tex.id]; dragTrStart={x:tr.offsetX, y:tr.offsetY}; e.preventDefault();
-  });
-  window.addEventListener('mousemove', function(e){
-    if(!dragging) return;
-    var design=getSelectedDesign(), tex=getSelectedDistress(); if(!design||!tex||!design.distresses[tex.id]) return;
-    var r=mainCanvas.getBoundingClientRect(), sx=mainCanvas.width/r.width, sy=mainCanvas.height/r.height;
-    var tr=design.distresses[tex.id];
-    tr.offsetX=Math.round(dragTrStart.x+(e.clientX-r.left)*sx-dragStart.x);
-    tr.offsetY=Math.round(dragTrStart.y+(e.clientY-r.top)*sy-dragStart.y); scheduleRender();
-  });
-  window.addEventListener('mouseup', function(){ if(dragging){ dragging=false; mainCanvas.style.cursor='grab'; } });
-
-  /* ---- AUTO CROP ---- */
-  $('dt-crop-btn').addEventListener('click', function(){
-    if(!state.canvasW || !state.designLayers.length) return;
-    render();
-    var W=state.canvasW, H=state.canvasH;
-    var px=ctx.getImageData(0,0,W,H).data;
-    var t=H,b=0,l=W,r=0,found=false;
-    for(var y=0;y<H;y++) for(var x=0;x<W;x++){
-      if(px[(y*W+x)*4+3]>0){ if(y<t)t=y; if(y>b)b=y; if(x<l)l=x; if(x>r)r=x; found=true; }
-    }
-    if(!found){alert('No visible pixels.');return;}
-    var cw=r-l+1, ch=b-t+1;
-    var crop=ctx.getImageData(l,t,cw,ch);
-    state.canvasW=cw; state.canvasH=ch;
-    mainCanvas.width=cw; mainCanvas.height=ch;
-    ctx.putImageData(crop,0,0);
-    state.designLayers.forEach(function(layer){
-      var oc=layer.originalCanvas;
-      var newC=makeCanvas(cw,ch);
-      newC.getContext('2d').drawImage(oc, Math.round((W-oc.width)/2)-l, Math.round((H-oc.height)/2)-t);
-      layer.originalCanvas=newC;
-    });
-    var oldWIn = toIn(parseFloat($('dt-canvas-w').value)||0);
-    var oldHIn = toIn(parseFloat($('dt-canvas-h').value)||0);
-    if (oldWIn && oldHIn) {
-      $('dt-canvas-w').value = fromIn(oldWIn * (cw / W));
-      $('dt-canvas-h').value = fromIn(oldHIn * (ch / H));
-    }
-    canvasAspect = cw / ch;
-    var _wc=state.canvasW/300,_hc=state.canvasH/300;
-    var _sc=state.currentUnit==='cm'?(_wc*2.54).toFixed(1)+' x '+(_hc*2.54).toFixed(1)+' cm':(state.currentUnit==='px'?state.canvasW+' x '+state.canvasH+' px':_wc.toFixed(2)+'" x '+_hc.toFixed(2)+'"');
-    infoEl.textContent=_sc+'  ·  '+state.canvasW+' x '+state.canvasH+' px';
-    var badge = $('dt-size-badge');
-    var sizeLabel = state.currentUnit==='cm' ? (toIn(parseFloat($('dt-canvas-w').value)||state.canvasW/300)*2.54).toFixed(1)+' x '+(toIn(parseFloat($('dt-canvas-h').value)||state.canvasH/300)*2.54).toFixed(1)+' cm' : (state.currentUnit==='px' ? state.canvasW+' x '+state.canvasH+' px' : (parseFloat($('dt-canvas-w').value)||0).toFixed(2)+'" x '+(parseFloat($('dt-canvas-h').value)||0).toFixed(2)+'"');
-    $('dt-badge-size').textContent = sizeLabel;
-    $('dt-badge-px').textContent = state.canvasW+' x '+state.canvasH+' px';
-    syncDisplay(); scheduleRender(); updateDPI();
-  });
-
-  /* ---- CANVAS RESIZE ---- */
-  var canvasResizeTimer=null, canvasAspect=1;
-  $('dt-lock-btn').addEventListener('click', function(){
-    state.lockCanvas=!state.lockCanvas; this.classList.toggle('active',state.lockCanvas);
-    $('dt-lock-icon').innerHTML=state.lockCanvas
-      ?'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'
-      :'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
-  });
-  $('dt-canvas-w').addEventListener('input', function(){
-    if(state.lockCanvas&&state.canvasW){ var w=parseFloat(this.value)||0; if(w>0) $('dt-canvas-h').value=fromIn(toIn(w)/canvasAspect); }
-    clearTimeout(canvasResizeTimer); canvasResizeTimer=setTimeout(doCanvasResize,600); updateDPI();
-  });
-  $('dt-canvas-h').addEventListener('input', function(){
-    if(state.lockCanvas&&state.canvasH){ var h=parseFloat(this.value)||0; if(h>0) $('dt-canvas-w').value=fromIn(toIn(h)*canvasAspect); }
-    clearTimeout(canvasResizeTimer); canvasResizeTimer=setTimeout(doCanvasResize,600); updateDPI();
-  });
-  function doCanvasResize(){
-    var wIn=toIn(parseFloat($('dt-canvas-w').value)||0), hIn=toIn(parseFloat($('dt-canvas-h').value)||0);
-    if(wIn<=0||hIn<=0||!state.canvasW||!state.canvasH) return;
-    var nW=Math.round(wIn*300), nH=Math.round(hIn*300);
-    var rW=nW/state.canvasW, rH=nH/state.canvasH;
-    state.designLayers.forEach(function(layer){
-      layer.originalCanvas=makeCanvas(Math.max(1,Math.round(layer.originalCanvas.width*rW)), Math.max(1,Math.round(layer.originalCanvas.height*rH)), layer.originalCanvas);
-    });
-    state.designLayers.forEach(function(layer){
-      Object.keys(layer.distresses).forEach(function(tid){
-        var tr=layer.distresses[tid]; tr.drawW=Math.round(tr.drawW*rW); tr.drawH=Math.round(tr.drawH*rH);
-        tr.offsetX=Math.round(tr.offsetX*rW); tr.offsetY=Math.round(tr.offsetY*rH);
-      });
-    });
-    state.canvasW=nW; state.canvasH=nH; mainCanvas.width=nW; mainCanvas.height=nH;
-    updateCanvasInputs(true); syncDisplay(); scheduleRender();
-  }
-  function updateCanvasInputs(forceUpdate){
-    if(!state.canvasW) return;
-    canvasAspect=state.canvasW/state.canvasH;
-    var wIn=state.canvasW/300, hIn=state.canvasH/300;
-    if (forceUpdate || !parseFloat($('dt-canvas-w').value)) { $('dt-canvas-w').value=fromIn(wIn); $('dt-canvas-h').value=fromIn(hIn); }
-    var _w=state.canvasW/300,_h=state.canvasH/300;
-    var _s=state.currentUnit==='cm'?(_w*2.54).toFixed(1)+' x '+(_h*2.54).toFixed(1)+' cm':(state.currentUnit==='px'?state.canvasW+' x '+state.canvasH+' px':_w.toFixed(2)+'" x '+_h.toFixed(2)+'"');
-    infoEl.textContent=_s+'  ·  '+state.canvasW+' x '+state.canvasH+' px';
-    var badge=$('dt-size-badge');
-    var sizeLabel = state.currentUnit==='cm' ? (toIn(parseFloat($('dt-canvas-w').value)||state.canvasW/300)*2.54).toFixed(1)+' x '+(toIn(parseFloat($('dt-canvas-h').value)||state.canvasH/300)*2.54).toFixed(1)+' cm' : (state.currentUnit==='px' ? state.canvasW+' x '+state.canvasH+' px' : (parseFloat($('dt-canvas-w').value)||0).toFixed(2)+'" x '+(parseFloat($('dt-canvas-h').value)||0).toFixed(2)+'"');
-    $('dt-badge-size').textContent = sizeLabel;
-    $('dt-badge-px').textContent = state.canvasW+' x '+state.canvasH+' px';
-    badge.style.display='flex';
-    updateDPI();
-  }
-
-  function syncDisplay(){
-    if(!state.canvasW){ mainCanvas.style.width=''; mainCanvas.style.height=''; return; }
-    var vW=Math.max(50,(viewport.clientWidth||700)-40), vH=Math.max(50,(viewport.clientHeight||500)-40);
-    var scale=Math.min(1,vW/state.canvasW,vH/state.canvasH);
-    mainCanvas.style.width=Math.round(state.canvasW*scale)+'px'; mainCanvas.style.height=Math.round(state.canvasH*scale)+'px';
-  }
-  window.addEventListener('resize', syncDisplay);
-
-  /* ---- UNIT TOGGLE ---- */
-  $('dt-unit-in').addEventListener('click', function(){ changeUnit('in'); });
-  $('dt-unit-cm').addEventListener('click', function(){ changeUnit('cm'); });
-  $('dt-unit-px').addEventListener('click', function(){ changeUnit('px'); });
-  function changeUnit(u){
-    if(u===state.currentUnit) return;
-    var wIn=toIn(parseFloat($('dt-canvas-w').value)||0), hIn=toIn(parseFloat($('dt-canvas-h').value)||0);
-    state.currentUnit=u;
-    $('dt-unit-in').classList.toggle('active',u==='in');
-    $('dt-unit-cm').classList.toggle('active',u==='cm');
-    $('dt-unit-px').classList.toggle('active',u==='px');
-    $('dt-w-label').textContent='W ('+u+')'; $('dt-h-label').textContent='H ('+u+')';
-    if(wIn>0){ $('dt-canvas-w').value=fromIn(wIn); $('dt-canvas-h').value=fromIn(hIn); }
-    updateCanvasInputs();
-    var tex=getSelectedDistress(), design=getSelectedDesign();
-    if(tex&&design&&design.distresses[tex.id]){ var tr=design.distresses[tex.id]; $('dt-dist-w').value=fromIn(tr.drawW/300); $('dt-dist-h').value=fromIn(tr.drawH/300); }
-  }
-
-  /* ---- BACKGROUND ---- */
-  var bgLayer=$('dt-bg-layer');
-  state.bgStyle='repeating-conic-gradient(#2a2a2a 0% 25%,#1a1a1a 0% 50%) 0 0/20px 20px';
-  bgLayer.style.background=state.bgStyle;
-  document.querySelectorAll('.dt-swatch').forEach(function(s){
-    s.addEventListener('click', function(){
-      document.querySelectorAll('.dt-swatch').forEach(function(b){ b.classList.remove('active'); });
-      $('dt-custom-swatch').classList.remove('active'); this.classList.add('active');
-      var c=this.dataset.color;
-      state.bgStyle=c==='none'?'repeating-conic-gradient(#2a2a2a 0% 25%,#1a1a1a 0% 50%) 0 0/20px 20px':c;
-      bgLayer.style.background=state.bgStyle;
-    });
-  });
-  $('dt-bg-custom').addEventListener('input', function(e){
-    document.querySelectorAll('.dt-swatch').forEach(function(b){ b.classList.remove('active'); });
-    var cs=$('dt-custom-swatch'); cs.classList.add('active'); cs.style.background=e.target.value;
-    state.bgStyle=e.target.value; bgLayer.style.background=e.target.value;
-  });
-
-  /* ---- EXPORT ---- */
-  $('dt-export-btn').addEventListener('click', function(){
-    if(!state.canvasW){ alert('Upload a design first.'); return; }
-    var b64=mainCanvas.toDataURL('image/png').split(',')[1], bin=atob(b64);
-    var bytes=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-    var ppm=Math.round(300/0.0254), tagged=injectPHYs(bytes,ppm,ppm);
-    var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([tagged],{type:'image/png'}));
-    a.download='distressed-300dpi.png'; a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); },5000);
-  });
-  function injectPHYs(png,pX,pY){
-    var cd=new Uint8Array(9);
-    cd[0]=(pX>>24)&255;cd[1]=(pX>>16)&255;cd[2]=(pX>>8)&255;cd[3]=pX&255;
-    cd[4]=(pY>>24)&255;cd[5]=(pY>>16)&255;cd[6]=(pY>>8)&255;cd[7]=pY&255;cd[8]=1;
-    var tb=[0x70,0x48,0x59,0x73], crc=crc32(tb.concat(Array.from(cd)));
-    var chunk=new Uint8Array(21);
-    chunk[0]=0;chunk[1]=0;chunk[2]=0;chunk[3]=9;chunk[4]=0x70;chunk[5]=0x48;chunk[6]=0x59;chunk[7]=0x73;
-    chunk.set(cd,8); chunk[17]=(crc>>24)&255;chunk[18]=(crc>>16)&255;chunk[19]=(crc>>8)&255;chunk[20]=crc&255;
-    var r=new Uint8Array(png.length+21); r.set(png.slice(0,33),0); r.set(chunk,33); r.set(png.slice(33),54); return r;
-  }
-  var cT=(function(){ var t=new Uint32Array(256); for(var n=0;n<256;n++){ var c=n; for(var k=0;k<8;k++) c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1); t[n]=c; } return t; })();
-  function crc32(b){ var c=0xffffffff; for(var i=0;i<b.length;i++) c=cT[(c^b[i])&255]^(c>>>8); return(c^0xffffffff)>>>0; }
-
-  /* ---- PRELOADED DISTRESS TEXTURES ---- */
-  var preloadedGroups = [
-    {
-      label: 'Distress',
-      items: [
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Broken_Glass_3.png?v=1773767707', name: 'Broken Glass 3' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/broken_glass_2.png?v=1773767702', name: 'Broken Glass 2' }
-      ]
-    },
-    {
-      label: 'Texture Borders',
-      items: [
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_1.png?v=1777520058',          name: 'Border 1' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_2.png?v=1777520057',          name: 'Border 2' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_3.png?v=1777520057',          name: 'Border 3' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_4.png?v=1777520057',          name: 'Border 4' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_5.png?v=1777520057',          name: 'Border 5' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_6.png?v=1777520058',          name: 'Border 6' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_7.png?v=1777520057',          name: 'Border 7' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_8.png?v=1777520057',          name: 'Border 8' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_9.png?v=1777520058',          name: 'Border 9' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_10.png?v=1777520058',         name: 'Border 10' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_11_FINE_35_LPI.png?v=1777520059', name: 'Border 11 Fine 35 LPI' },
-        { url: 'https://cdn.shopify.com/s/files/1/0972/9064/9893/files/Border_12_FINE_LPI.png?v=1777520060',    name: 'Border 12 Fine LPI' }
-      ]
-    }
-  ];
-
-  function loadPreloadedGroups() {
-    preloadedGroups.forEach(function(group) {
-      group.items.forEach(function(d) {
-        fetch(d.url)
-          .then(function(res) { return res.blob(); })
-          .then(function(blob) {
-            var blobUrl = URL.createObjectURL(blob);
-            var img = new Image();
-            img.onload = function() {
-              state.distressTextures.push({
-                id: uid(), name: d.name, group: group.label,
-                img: img, src: blobUrl,
-                naturalW: img.naturalWidth, naturalH: img.naturalHeight,
-                aspect: img.naturalWidth / img.naturalHeight
-              });
-              renderDistressList(); renderActiveDistresses();
-            };
-            img.src = blobUrl;
-          })
-          .catch(function(err) { console.warn('Could not load: ' + d.url, err); });
-      });
-    });
-  }
-  loadPreloadedGroups();
-
-  /* ---- RESET DESIGN SIZE ---- */
-  $('dt-design-reset-size').addEventListener('click', function() {
-    var design = getSelectedDesign();
-    if (!design) return;
-    design.originalCanvas = makeCanvas(design.img.naturalWidth, design.img.naturalHeight, design.img);
-    scheduleRender(); updateAlphaSection();
-  });
-
-  /* ---- COLOR KNOCKOUT ---- */
-  var knockoutHistory = [];
-  var eyedropperActive = false;
-
-  $('dt-knockout-color').addEventListener('input', function() {
-    $('dt-knockout-preview').style.background = this.value;
-  });
-
-  function setEyedropper(val) {
-    eyedropperActive = val;
-    $('dt-eyedropper-btn').classList.toggle('active', val);
-    mainCanvas.classList.toggle('eyedropper-mode', val);
-  }
-
-  $('dt-eyedropper-btn').addEventListener('click', function() {
-    setEyedropper(!eyedropperActive);
-    if (eyedropperActive) setEraserActive(false);
-  });
-
-  mainCanvas.addEventListener('click', function(e) {
-    if (!eyedropperActive) return;
-    var r = mainCanvas.getBoundingClientRect();
-    var sx = mainCanvas.width / r.width, sy = mainCanvas.height / r.height;
-    var x = Math.round((e.clientX - r.left) * sx);
-    var y = Math.round((e.clientY - r.top) * sy);
-    var px = ctx.getImageData(x, y, 1, 1).data;
-    var hex = '#' + [px[0],px[1],px[2]].map(function(v){ return v.toString(16).padStart(2,'0'); }).join('');
-    $('dt-knockout-color').value = hex;
-    $('dt-knockout-preview').style.background = hex;
-    setEyedropper(false);
-  });
-
-  var knockoutPanelOpen = false;
-  $('dt-knockout-toggle').addEventListener('click', function() {
-    knockoutPanelOpen = !knockoutPanelOpen;
-    $('dt-knockout-panel').style.display = knockoutPanelOpen ? 'block' : 'none';
-    $('dt-knockout-chevron').style.transform = knockoutPanelOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-    if (knockoutPanelOpen) setEyedropper(true);
-    else setEyedropper(false);
-  });
-
-  var knockoutPreviewMode = false;
-  var knockoutOriginalSnap = null;
-
-  function applyKnockoutToCanvas(oc, tr, tg, tb2, tol, useHalftone, lpi) {
-    var octx = oc.getContext('2d');
-    var W = oc.width, H = oc.height;
-    var id = octx.getImageData(0, 0, W, H);
-    var d = id.data;
-
-    var keepMap = new Uint8Array(W * H);
-    for (var i = 0; i < d.length; i += 4) {
-      if (d[i+3] === 0) { keepMap[i/4] = 0; continue; }
-      var dr = Math.abs(d[i]   - tr);
-      var dg = Math.abs(d[i+1] - tg);
-      var db = Math.abs(d[i+2] - tb2);
-      keepMap[i/4] = (dr <= tol && dg <= tol && db <= tol) ? 0 : 1;
-    }
-
-    if (useHalftone) {
-      var densityMap = new Float32Array(W * H);
-      for (var i = 0; i < d.length; i += 4) {
-        var pi = i / 4;
-        if (d[i+3] === 0) { densityMap[pi] = 0; continue; }
-        var dr = Math.abs(d[i]   - tr);
-        var dg = Math.abs(d[i+1] - tg);
-        var db = Math.abs(d[i+2] - tb2);
-        var dist = Math.max(dr, dg, db);
-        if (tol === 0) {
-          densityMap[pi] = (dist === 0) ? 0 : 1;
-        } else {
-          densityMap[pi] = Math.min(1, dist / tol);
-        }
-        densityMap[pi] *= d[i+3] / 255;
-      }
-
-      var spacing = Math.max(2, Math.round(300 / lpi));
-      var htCanvas = document.createElement('canvas');
-      htCanvas.width = W; htCanvas.height = H;
-      var htCtx = htCanvas.getContext('2d');
-      htCtx.clearRect(0, 0, W, H);
-      var angle2 = 22.5 * Math.PI / 180;
-      var cosA2 = Math.cos(angle2), sinA2 = Math.sin(angle2);
-      var diagLen2 = Math.ceil(Math.sqrt(W*W+H*H));
-      for (var gi2 = -diagLen2; gi2 < diagLen2+spacing; gi2 += spacing) {
-        for (var gj2 = -diagLen2; gj2 < diagLen2+spacing; gj2 += spacing) {
-          var gx = Math.round(gi2*cosA2 - gj2*sinA2);
-          var gy = Math.round(gi2*sinA2 + gj2*cosA2);
-          if (gx<-spacing||gx>W+spacing||gy<-spacing||gy>H+spacing) continue;
-          var sum = 0, count = 0;
-          var x0 = Math.max(0, gx - Math.floor(spacing/2));
-          var y0 = Math.max(0, gy - Math.floor(spacing/2));
-          var x1 = Math.min(W, gx + Math.ceil(spacing/2));
-          var y1 = Math.min(H, gy + Math.ceil(spacing/2));
-          for (var sy2 = y0; sy2 < y1; sy2++) {
-            for (var sx2 = x0; sx2 < x1; sx2++) {
-              sum += densityMap[sy2*W+sx2];
-              count++;
-            }
-          }
-          var avg = count > 0 ? sum / count : 0;
-          if (avg < 0.01) continue;
-          var dotR = avg * spacing;
-          if (dotR < 0.5) continue;
-          htCtx.beginPath();
-          htCtx.arc(gx, gy, dotR, 0, Math.PI * 2);
-          htCtx.fillStyle = '#fff';
-          htCtx.fill();
-        }
-      }
-
-      var resultCanvas = document.createElement('canvas');
-      resultCanvas.width = W; resultCanvas.height = H;
-      var rCtx = resultCanvas.getContext('2d');
-      rCtx.putImageData(id, 0, 0);
-      rCtx.globalCompositeOperation = 'destination-in';
-      rCtx.drawImage(htCanvas, 0, 0);
-      rCtx.globalCompositeOperation = 'source-over';
-      octx.clearRect(0, 0, W, H);
-      octx.drawImage(resultCanvas, 0, 0);
-    } else {
-      for (var i = 0; i < d.length; i += 4) {
-        d[i+3] = keepMap[i/4] ? d[i+3] : 0;
-      }
-      octx.putImageData(id, 0, 0);
-    }
-  }
-
-  function enterKnockoutPreview() {
-    var design = getSelectedDesign();
-    if (!design) { alert('Select a design layer first.'); return; }
-    knockoutOriginalSnap = design.originalCanvas.getContext('2d')
-      .getImageData(0, 0, design.originalCanvas.width, design.originalCanvas.height);
-    knockoutPreviewMode = true;
-    $('dt-knockout-commit-row').style.display = 'flex';
-    $('dt-knockout-preview-btn').style.display = 'none';
-    $('dt-knockout-hint').textContent = 'Adjust tolerance to refine. Commit to apply permanently.';
-    runKnockoutPreview();
-  }
-
-  function runKnockoutPreview() {
-    var design = getSelectedDesign();
-    if (!design || !knockoutOriginalSnap) return;
-    design.originalCanvas.getContext('2d').putImageData(knockoutOriginalSnap, 0, 0);
-    var colorHex = $('dt-knockout-color').value;
-    var tol = parseInt($('dt-knockout-tol').value);
-    var tr = parseInt(colorHex.slice(1,3), 16);
-    var tg = parseInt(colorHex.slice(3,5), 16);
-    var tb2 = parseInt(colorHex.slice(5,7), 16);
-    var useHalftone = $('dt-halftone-check').checked;
-    var lpi = parseInt($('dt-halftone-lpi').value) || 35;
-    applyKnockoutToCanvas(design.originalCanvas, tr, tg, tb2, tol, useHalftone, lpi);
-    scheduleRender(); updateAlphaSection();
-  }
-
-  function exitKnockoutPreview(commit) {
-    var design = getSelectedDesign();
-    knockoutPreviewMode = false;
-    $('dt-knockout-commit-row').style.display = 'none';
-    $('dt-knockout-preview-btn').style.display = '';
-    $('dt-knockout-hint').textContent = 'Removes selected color from the design. Click eyedropper then click canvas to sample.';
-    if (!commit && design && knockoutOriginalSnap) {
-      design.originalCanvas.getContext('2d').putImageData(knockoutOriginalSnap, 0, 0);
-      scheduleRender(); updateAlphaSection();
-    } else if (commit && design) {
-      knockoutHistory.push({ id: design.id, snap: knockoutOriginalSnap });
-      if (knockoutHistory.length > 10) knockoutHistory.shift();
-    }
-    knockoutOriginalSnap = null;
-  }
-
-  $('dt-knockout-preview-btn').addEventListener('click', enterKnockoutPreview);
-  $('dt-knockout-commit').addEventListener('click', function() { exitKnockoutPreview(true); });
-  $('dt-knockout-cancel').addEventListener('click', function() { exitKnockoutPreview(false); });
-
-  $('dt-knockout-tol').addEventListener('input', function() {
-    $('dt-knockout-tol-val').textContent = this.value;
-    if (knockoutPreviewMode) runKnockoutPreview();
-  });
-  $('dt-halftone-lpi').addEventListener('input', function() {
-    $('dt-halftone-lpi-val').textContent = this.value;
-    if (knockoutPreviewMode) runKnockoutPreview();
-  });
-  $('dt-halftone-check').addEventListener('change', function() {
-    $('dt-halftone-panel').style.display = this.checked ? 'block' : 'none';
-    if (knockoutPreviewMode) runKnockoutPreview();
-  });
-
-  $('dt-knockout-undo').addEventListener('click', function() {
-    if (knockoutPreviewMode) { exitKnockoutPreview(false); return; }
-    var design = getSelectedDesign();
-    if (!design) return;
-    for (var i = knockoutHistory.length - 1; i >= 0; i--) {
-      if (knockoutHistory[i].id === design.id) {
-        design.originalCanvas.getContext('2d').putImageData(knockoutHistory[i].snap, 0, 0);
-        knockoutHistory.splice(i, 1);
-        scheduleRender(); updateAlphaSection();
-        return;
-      }
-    }
-  });
-
-  /* ---- ERASER ---- */
-  var eraserActive = false;
-  var eraserSize = 20;
-  var eraserPainting = false;
-  var eraserHistory = {};
-
-  function getOrCreateMask(design, texId) {
-    if (!design.masks) design.masks = {};
-    if (!design.masks[texId]) {
-      var m = document.createElement('canvas');
-      m.width = state.canvasW; m.height = state.canvasH;
-      var mCtx = m.getContext('2d');
-      mCtx.fillStyle = '#fff';
-      mCtx.fillRect(0, 0, m.width, m.height);
-      design.masks[texId] = m;
-    }
-    return design.masks[texId];
-  }
-
-  function pushEraserHistory(design, texId) {
-    if (!eraserHistory[texId]) eraserHistory[texId] = [];
-    var mask = getOrCreateMask(design, texId);
-    var snap = mask.getContext('2d').getImageData(0, 0, mask.width, mask.height);
-    eraserHistory[texId].push(snap);
-    if (eraserHistory[texId].length > 20) eraserHistory[texId].shift();
-  }
-
-  function setEraserActive(val) {
-    if (val) setEyedropper(false);
-    eraserActive = val;
-    var btn = $('dt-eraser-toggle');
-    btn.classList.toggle('active', val);
-    btn.innerHTML = val
-      ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/><path d="M6.0 11.0 l7 7"/></svg> Eraser: On'
-      : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/><path d="M6.0 11.0 l7 7"/></svg> Eraser: Off';
-    $('dt-eraser-controls').style.display = val ? 'block' : 'none';
-    mainCanvas.classList.toggle('eraser-mode', val);
-  }
-
-  $('dt-eraser-toggle').addEventListener('click', function() {
-    setEraserActive(!eraserActive);
-  });
-
-  $('dt-eraser-size').addEventListener('input', function() {
-    eraserSize = parseInt(this.value);
-    $('dt-eraser-size-val').textContent = eraserSize;
-  });
-
-  $('dt-eraser-undo').addEventListener('click', function() {
-    var design = getSelectedDesign(), tex = getSelectedDistress();
-    if (!design || !tex) return;
-    var hist = eraserHistory[tex.id];
-    if (!hist || !hist.length) return;
-    var snap = hist.pop();
-    var mask = getOrCreateMask(design, tex.id);
-    mask.getContext('2d').putImageData(snap, 0, 0);
-    scheduleRender();
-  });
-
-  $('dt-eraser-clear').addEventListener('click', function() {
-    var design = getSelectedDesign(), tex = getSelectedDistress();
-    if (!design || !tex) return;
-    pushEraserHistory(design, tex.id);
-    var mask = getOrCreateMask(design, tex.id);
-    var mCtx = mask.getContext('2d');
-    mCtx.fillStyle = '#fff';
-    mCtx.fillRect(0, 0, mask.width, mask.height);
-    scheduleRender();
-  });
-
-  function getCanvasPos(e) {
-    var r = mainCanvas.getBoundingClientRect();
-    var sx = mainCanvas.width / r.width, sy = mainCanvas.height / r.height;
-    return { x: (e.clientX - r.left) * sx, y: (e.clientY - r.top) * sy };
-  }
-
-  function eraserPaint(x, y) {
-    var design = getSelectedDesign(), tex = getSelectedDistress();
-    if (!design || !tex || !design.distresses[tex.id]) return;
-    var mask = getOrCreateMask(design, tex.id);
-    var mCtx = mask.getContext('2d');
-    mCtx.globalCompositeOperation = 'source-over';
-    mCtx.fillStyle = '#000';
-    mCtx.beginPath();
-    mCtx.arc(x, y, eraserSize / 2, 0, Math.PI * 2);
-    mCtx.fill();
-    scheduleRender();
-  }
-
-  mainCanvas.addEventListener('mousedown', function(e) {
-    if (!eraserActive) return;
-    var design = getSelectedDesign(), tex = getSelectedDistress();
-    if (!design || !tex || !design.distresses[tex.id]) return;
-    eraserPainting = true;
-    pushEraserHistory(design, tex.id);
-    var pos = getCanvasPos(e);
-    eraserPaint(pos.x, pos.y);
-    e.preventDefault();
-  });
-
-  window.addEventListener('mousemove', function(e) {
-    if (!eraserActive || !eraserPainting) return;
-    var pos = getCanvasPos(e);
-    eraserPaint(pos.x, pos.y);
-  });
-
-  window.addEventListener('mouseup', function() {
-    if (eraserPainting) eraserPainting = false;
-  });
-
-  /* ---- HALFTONE BORDER ---- */
-  var borderHTOpen = false;
-  var borderHTHistory = {};
-
-  $('dt-border-ht-toggle').addEventListener('click', function() {
-    borderHTOpen = !borderHTOpen;
-    $('dt-border-ht-panel').style.display = borderHTOpen ? 'block' : 'none';
-    $('dt-border-ht-chevron').style.transform = borderHTOpen ? 'rotate(180deg)' : '';
-    if (borderHTOpen) {
-      enterBorderHTPreview();
-    }
-  });
-
-  var borderHTPreviewMode = false;
-  var borderHTPreviewSnap = null;
-
-  $('dt-border-blur').addEventListener('input', function() {
-    $('dt-border-blur-val').textContent = this.value;
-    if (borderHTPreviewMode) runBorderHTPreview();
-  });
-  $('dt-border-lpi').addEventListener('input', function() {
-    $('dt-border-lpi-val').textContent = this.value;
-    if (borderHTPreviewMode) runBorderHTPreview();
-  });
-
-  function applyBorderHalftone(tex, blurPx, lpi) {
-    var design = getSelectedDesign();
-    if (!design || !tex) return;
-
-    var W = state.canvasW, H = state.canvasH;
-    var tr = design.distresses[tex.id];
-    var dw = Math.round(tr.drawW), dh = Math.round(tr.drawH);
-    var cx2 = Math.round(tr.offsetX) + dw/2, cy2 = Math.round(tr.offsetY) + dh/2;
-
-    var srcC = document.createElement('canvas'); srcC.width=W; srcC.height=H;
-    var srcCtx = srcC.getContext('2d');
-    srcCtx.save();
-    srcCtx.translate(cx2, cy2);
-    srcCtx.rotate(tr.rotation * Math.PI / 180);
-    srcCtx.drawImage(tex.img, -dw/2, -dh/2, dw, dh);
-    srcCtx.restore();
-
-    var alphaC = document.createElement('canvas'); alphaC.width=W; alphaC.height=H;
-    var alphaCtx = alphaC.getContext('2d');
-    var srcData = srcCtx.getImageData(0,0,W,H).data;
-    var alphaID = alphaCtx.createImageData(W,H);
-    var ad = alphaID.data;
-    for (var i=0; i<srcData.length; i+=4) {
-      var r=srcData[i], g=srcData[i+1], b=srcData[i+2], a=srcData[i+3]/255;
-      var brightness=(r*0.299+g*0.587+b*0.114)/255;
-      var density;
-      if (a < 0.05) {
-        density = 0;
+    var noticeText = '';
+    var noticeLabel = '';
+    var noticeClass = 'waiting-notice';
+    if (isVectorArt) {
+      if (f.latest_version > 1) {
+        noticeClass = 'ready-notice';
+        noticeLabel = 'ARTWORK READY';
+        noticeText = 'Here is your finished artwork.';
+      } else if (inProg) {
+        noticeClass = 'waiting-notice';
+        noticeLabel = 'IN PROGRESS';
+        noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
+      } else if (isDelivered) {
+        noticeClass = 'ready-notice';
+        noticeLabel = 'DELIVERED';
+        noticeText = 'Your artwork has been delivered.';
       } else {
-        density = (1 - brightness) * a;
+        noticeClass = 'waiting-notice';
+        noticeLabel = 'IN PROGRESS';
+        noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
       }
-      ad[i]=ad[i+1]=ad[i+2]=255;
-      ad[i+3]=Math.round(density*255);
+    } else if (isDelivered || f.latest_version > 1) {
+      noticeClass = 'ready-notice';
+      noticeLabel = 'ARTWORK READY';
+      noticeText = 'Here is your finished artwork.';
+    } else if (inProg) {
+      noticeClass = 'progress-notice';
+      noticeLabel = 'REVISION IN PROGRESS';
+      noticeText = 'Your edit request is being worked on. We\'ll email you when finished.';
+    } else {
+      noticeClass = 'waiting-notice';
+      noticeLabel = 'IN PROGRESS';
+      noticeText = 'This is your uploaded file. Our team is preparing the final artwork.';
     }
-    alphaCtx.putImageData(alphaID,0,0);
+    var notice = noticeText ? '<div class="' + noticeClass + '"><span style="font-size:14px;flex-shrink:0">&#128444;</span><div><div class="' + (noticeClass === 'ready-notice' ? 'ready-label' : noticeClass === 'progress-notice' ? 'progress-label' : 'waiting-label') + '">' + noticeLabel + '</div><div class="' + (noticeClass === 'ready-notice' ? 'ready-text' : noticeClass === 'progress-notice' ? 'progress-text' : 'waiting-text') + '">' + noticeText + '</div></div></div>' : '';
 
-    var blurC = document.createElement('canvas'); blurC.width=W; blurC.height=H;
-    var blurCtx = blurC.getContext('2d');
-    if (blurPx > 0) blurCtx.filter = 'blur(' + blurPx + 'px)';
-    blurCtx.drawImage(alphaC, 0, 0);
-    blurCtx.filter = 'none';
+    var serviceLabel = f.service_type ? '<div class="design-service">' + f.service_type + '</div>' : '';
+    var fileNameLabel = f.original_file_name ? '<div class="design-filename" title="' + f.original_file_name + '">' + f.original_file_name + '</div>' : '';
 
-    var blurData = blurCtx.getImageData(0, 0, W, H).data;
+    card.innerHTML =
+      '<div class="card-header"><div><div class="design-name">' + label + '</div>' + serviceLabel + fileNameLabel + (subLabel !== 'Final artwork' && subLabel !== 'Original upload' ? '<div class="design-label">' + subLabel + (f.current_files.length > 1 ? ' &middot; ' + f.current_files.length + ' files' : '') + '</div>' : '') + '</div>' + statusBadge + '</div>' +
+      filesListHtml +
+      notice +
+      '<div class="actions" id="act-' + f.id + '">' +
+      (hasHistory ? '<button class="btn btn-hist" onclick="openHistory(\'' + f.id + '\')">&#128339; History (' + (f.latest_version - 1) + 'v &middot; ' + f.edit_requests.length + ' req)</button>' : '') +
+      ((inProg && !isVectorArt) ? '<button class="btn btn-pend" disabled>&#9999; Revision Already Pending</button>'
+              : '<button class="btn btn-edit" onclick="openEditFromCard(\'' + f.id + '\')">&#9999; Request Edit</button>') +
+      '</div>';
+    return card;
+  }
 
-    var spacing = Math.max(2, Math.round(300 / lpi));
-    var maxR = spacing;
-    var htC = document.createElement('canvas'); htC.width=W; htC.height=H;
-    var htCtx = htC.getContext('2d');
-    htCtx.clearRect(0, 0, W, H);
-    var angle = 22.5 * Math.PI / 180;
-    var cosA = Math.cos(angle), sinA = Math.sin(angle);
-    var diagLen = Math.ceil(Math.sqrt(W*W+H*H));
-    for (var gi = -diagLen; gi < diagLen + spacing; gi += spacing) {
-      for (var gj = -diagLen; gj < diagLen + spacing; gj += spacing) {
-        var gx = Math.round(gi * cosA - gj * sinA);
-        var gy = Math.round(gi * sinA + gj * cosA);
-        if (gx < -spacing || gx > W+spacing || gy < -spacing || gy > H+spacing) continue;
-        var sum = 0, count = 0;
-        var x0 = Math.max(0, gx - Math.floor(spacing/2));
-        var y0 = Math.max(0, gy - Math.floor(spacing/2));
-        var x1 = Math.min(W, gx + Math.ceil(spacing/2));
-        var y1 = Math.min(H, gy + Math.ceil(spacing/2));
-        for (var sy = y0; sy < y1; sy++) {
-          for (var sx = x0; sx < x1; sx++) {
-            sum += blurData[(sy * W + sx) * 4 + 3] / 255;
-            count++;
-          }
+  window.openEditFromCard = function(fid) {
+    var card = document.getElementById('card-' + fid);
+    var subtaskId = JSON.parse(card.dataset.file).clickup_subtask_id || '';
+    var label = card.dataset.label;
+    var ce = card.dataset.ce;
+    openEdit(fid, subtaskId, label, ce);
+  };
+
+  window.openEdit = function(fid, subtaskId, label, ce) {
+    _attachments[fid] = [];
+    document.getElementById('act-' + fid).innerHTML =
+      '<textarea id="note-' + fid + '" placeholder="Describe what needs to change on ' + label + '..."></textarea>' +
+      '<input type="file" id="fileinput-' + fid + '" multiple style="display:none" onchange="handleAttach(\'' + fid + '\')">' +
+      '<button class="btn-attach" onclick="document.getElementById(\'fileinput-' + fid + '\').click()">&#128206; Attach files (optional)</button>' +
+      '<div class="attachments-list" id="ax-list-' + fid + '"></div>' +
+      '<div class="btn-row"><button class="btn btn-cancel" style="flex:1" onclick="cancelEdit(\'' + fid + '\')">Cancel</button>' +
+      '<button class="btn btn-send" style="flex:2" onclick="sendEdit(\'' + fid + '\')">Send Request</button></div>';
+  };
+
+  window.handleAttach = function(fid) {
+    var input = document.getElementById('fileinput-' + fid);
+    var list = document.getElementById('ax-list-' + fid);
+    Array.from(input.files).forEach(function(file){
+      var idx = _attachments[fid].length;
+      _attachments[fid].push({name: file.name, url: null, uploading: true, xhr: null});
+      var item = document.createElement('div');
+      item.className = 'attachment-item';
+      item.id = 'ax-' + fid + '-' + idx;
+      item.innerHTML = '<span class="ax-name" style="flex:none;max-width:40%">' + file.name + '</span>' +
+        '<div class="ax-progress-wrap"><div class="ax-progress-bar"><div class="ax-progress-fill" id="ax-fill-' + fid + '-' + idx + '" style="width:0%"></div></div>' +
+        '<span class="ax-progress-pct" id="ax-pct-' + fid + '-' + idx + '">0%</span></div>' +
+        '<button class="ax-remove" onclick="cancelUpload(\'' + fid + '\',' + idx + ')" title="Cancel upload">&times;</button>';
+      list.appendChild(item);
+
+      var uploadPromise = uploadFile(file, 'edit-requests/' + fid, function(pct){
+        var fill = document.getElementById('ax-fill-' + fid + '-' + idx);
+        var pctEl = document.getElementById('ax-pct-' + fid + '-' + idx);
+        if (fill) fill.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = pct + '%';
+      });
+      _attachments[fid][idx].xhr = uploadPromise.xhr;
+
+      uploadPromise.then(function(url){
+        if (!_attachments[fid] || !_attachments[fid][idx]) return;
+        _attachments[fid][idx].url = url;
+        _attachments[fid][idx].uploading = false;
+        _attachments[fid][idx].xhr = null;
+        item.innerHTML = '<span class="ax-name">&#10003; ' + file.name + '</span>' +
+          '<button class="ax-remove" onclick="removeAttach(\'' + fid + '\',' + idx + ')">&times;</button>';
+      }).catch(function(err){
+        if (!_attachments[fid]) return;
+        if (err && err.message === 'cancelled') return;
+        if (!_attachments[fid][idx]) return;
+        _attachments[fid][idx].uploading = false;
+        _attachments[fid][idx].xhr = null;
+        item.innerHTML = '<span class="ax-name" style="color:#00aeef">&#9888; ' + file.name + ' \u2014 upload failed</span>' +
+          '<button class="ax-remove" onclick="removeAttach(\'' + fid + '\',' + idx + ')">&times;</button>';
+      });
+    });
+    input.value = '';
+  };
+
+  window.cancelUpload = function(fid, idx) {
+    if (!_attachments[fid] || !_attachments[fid][idx]) return;
+    var entry = _attachments[fid][idx];
+    if (entry.xhr) { try { entry.xhr.abort(); } catch(e){} }
+    _attachments[fid][idx] = null;
+    var el = document.getElementById('ax-' + fid + '-' + idx);
+    if (el) el.remove();
+  };
+
+  window.removeAttach = function(fid, idx) {
+    _attachments[fid][idx] = null;
+    var el = document.getElementById('ax-' + fid + '-' + idx);
+    if (el) el.remove();
+  };
+
+  window.cancelEdit = function(fid) {
+    delete _attachments[fid];
+    var card = document.getElementById('card-' + fid);
+    var f = card ? JSON.parse(card.dataset.file) : null;
+    var isVec = f && f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+    var hasHistory = f && (f.all_versions.length > 1 || f.edit_requests.length > 0 || isVec);
+    var html = '';
+    if (hasHistory) {
+      html += '<button class="btn btn-hist" onclick="openHistory(\'' + fid + '\')">&#128339; History</button>';
+    }
+    html += '<button class="btn btn-edit" onclick="openEditFromCard(\'' + fid + '\')">&#9999; Request Edit</button>';
+    document.getElementById('act-' + fid).innerHTML = html;
+  };
+
+  window.sendEdit = function(fid) {
+    var card = document.getElementById('card-' + fid);
+    var f = JSON.parse(card.dataset.file);
+    var subtaskId = f.clickup_subtask_id || '';
+    var label = card.dataset.label;
+    var ce = card.dataset.ce;
+
+    var note = document.getElementById('note-' + fid).value.trim();
+    if (!note) return;
+    var ax = (_attachments[fid] || []).filter(function(a){ return a && a.url; });
+    var stillUploading = (_attachments[fid] || []).some(function(a){ return a && a.uploading; });
+    if (stillUploading) { alert('Please wait for attachments to finish uploading.'); return; }
+
+    document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#a89880;font-size:12px;">Sending...</div>';
+
+    var attachmentsPayload = ax.map(function(a){ return {name: a.name, url: a.url}; });
+
+    var supabaseInsert = fetch(SUPABASE_URL + '/rest/v1/edit_requests', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + SUPABASE_ANON,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
+        file_id: fid,
+        customer_note: note,
+        status: 'in_progress',
+        attachments: attachmentsPayload
+      })
+    });
+
+    var zapierNotify = fetch(EDIT_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        clickup_subtask_id: subtaskId,
+        file_name: label,
+        note: note,
+        customer_email: ce,
+        file_id: fid,
+        attachments: attachmentsPayload
+      })
+    });
+
+    Promise.all([supabaseInsert, zapierNotify])
+      .then(function(results) {
+        if (!results[0].ok) throw new Error('Supabase insert failed: ' + results[0].status);
+        delete _attachments[fid];
+        var isVec = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+        var hasHistory = f.all_versions.length > 1 || f.edit_requests.length > 0 || isVec;
+        var actEl = document.getElementById('act-' + fid);
+        var html = '<div class="sent">&#10003; Sent! Check your email for updates.</div>';
+        if (hasHistory) {
+          html += '<button class="btn btn-hist" onclick="openHistory(\'' + fid + '\')">&#128339; History</button>';
         }
-        var avg = count > 0 ? sum / count : 0;
-        if (avg < 0.01) continue;
-        var dotR = avg * maxR;
-        if (dotR < 0.5) continue;
-        htCtx.beginPath();
-        htCtx.arc(gx, gy, dotR, 0, Math.PI * 2);
-        htCtx.fillStyle = '#fff';
-        htCtx.fill();
+        html += '<button class="btn btn-edit" onclick="openEditFromCard(\'' + fid + '\')">&#9999; Request Edit</button>';
+        actEl.innerHTML = html;
+      })
+      .catch(function(err) {
+        console.error('sendEdit error:', err);
+        document.getElementById('act-' + fid).innerHTML = '<div style="padding:8px 0;text-align:center;color:#00aeef;font-size:12px;">Error sending. Please try again.</div>';
+      });
+  };
+
+  window.openHistory = function(fid) {
+    var card  = document.getElementById('card-' + fid);
+    var f     = JSON.parse(card.dataset.file);
+    var label = card.dataset.label;
+    var isVecFile = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
+    var versionGroups = {};
+    f.all_versions.forEach(function(v){
+      if (!versionGroups[v.version]) versionGroups[v.version] = [];
+      versionGroups[v.version].push(v);
+    });
+    if (isVecFile) {
+      var origPreview = f.original_preview_url || f.preview_url || '';
+      if (origPreview && !versionGroups[1]) {
+        versionGroups[1] = [{
+          version: 1,
+          download_url: origPreview,
+          preview_url: origPreview,
+          uploaded_at: f.created_at
+        }];
       }
     }
+    var versionNums = Object.keys(versionGroups).map(Number).sort(function(a,b){ return a-b; });
 
-    if (!design.distressHT) design.distressHT = {};
-    design.distressHT[tex.id] = htC;
-    scheduleRender();
-  }
+    var timeline = [];
+    versionNums.forEach(function(vn){
+      var filesAtV = versionGroups[vn];
+      var ts = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).getTime() : 0;
+      timeline.push({ type: 'version', vn: vn, filesAtV: filesAtV, ts: ts });
+    });
+    f.edit_requests.forEach(function(r){
+      var ts = r.created_at ? new Date(r.created_at).getTime() : 0;
+      timeline.push({ type: 'request', data: r, ts: ts });
+    });
+    timeline.sort(function(a,b){ return a.ts - b.ts; });
 
-  function runBorderHTPreview() {
-    var design = getSelectedDesign(), tex = getSelectedDistress();
-    if (!design || !tex) return;
-    var blurPx = parseInt($('dt-border-blur').value) || 0;
-    var lpi = parseInt($('dt-border-lpi').value) || 35;
-    applyBorderHalftone(tex, blurPx, lpi);
-  }
+    var bodyHtml = '';
+    timeline.forEach(function(item){
+      if (item.type === 'version') {
+        var vn = item.vn;
+        var filesAtV = item.filesAtV;
+        var isCur = vn === f.latest_version;
+        var date = filesAtV[0].uploaded_at ? new Date(filesAtV[0].uploaded_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        bodyHtml += '<div class="vgroup">' +
+          '<div class="vgroup-head">' +
+            '<div class="vgroup-num ' + (isCur?'current':'old') + '">' + (vn === 1 ? 'Orig' : 'v' + (vn - 1)) + '</div>' +
+            '<div class="vgroup-label">' + (vn === 1 ? 'Original File' : 'Version ' + (vn - 1)) + (isCur ? '<span class="vgroup-cur-badge">CURRENT</span>' : '') + '' + '</div>' +
+            '<div class="vgroup-date">' + date + '</div>' +
+          '</div>' +
+          '<div class="vgroup-files">';
+        filesAtV.forEach(function(v,i){
+          var fileLabel = filesAtV.length > 1 ? 'File ' + (i+1) : '';
+          var thumbSrc = isVecFile ? (f.original_preview_url || f.preview_url || v.preview_url || '') : (v.preview_url || '');
+          var thumb = thumbSrc ? '<img src="' + thumbSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+          bodyHtml += '<div class="file-row">' +
+            '<div class="file-thumb" onclick="viewImg(this.dataset.src,this.dataset.lbl)" data-src="' + thumbSrc + '" data-lbl="' + label + ' ' + (vn === 1 ? 'Original' : 'v' + (vn-1)) + ' ' + fileLabel + '">' + thumb + '</div>' +
+            '<div class="file-info"></div>' +
+            '<button class="file-dl" data-url="' + (v.download_url||'#') + '" onclick="window.downloadFile(this.dataset.url)">&#11015; Download</button>' +
+          '</div>';
+        });
+        bodyHtml += '</div></div>';
+      } else {
+        var r = item.data;
+        var ip = r.status === 'in_progress';
+        var rDate = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        var axHtml = '';
+        var atts = r.attachments;
+        if (typeof atts === 'string') { try { atts = JSON.parse(atts); } catch(e){ atts = []; } }
+        if (atts && atts.length) {
+          axHtml = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">' +
+            atts.map(function(a){
+              return '<a href="' + a.url + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border:1px solid #e8e2d8;border-radius:6px;font-size:11px;color:#3d3020;text-decoration:none;">' +
+                '<span style="color:#00aeef;">&#128206;</span>' +
+                '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.name || 'attachment') + '</span>' +
+                '<span style="color:#00aeef;font-weight:600;">View</span>' +
+              '</a>';
+            }).join('') +
+          '</div>';
+        }
+        bodyHtml += '<div class="req-card ' + (ip?'req-pend':'req-res') + '" style="margin-left:0;margin-bottom:16px;">' +
+          '<div class="req-head"><div class="' + (ip?'req-lbl-pend':'req-lbl-res') + '">' +
+          (ip ? '<span class="pulse" style="width:6px;height:6px;background:#00aeef;"></span> EDIT REQUESTED' : 'EDIT REQUEST &middot; RESOLVED') +
+          '</div><span class="req-date">' + rDate + '</span></div>' +
+          '<p class="req-note">&ldquo;' + (r.customer_note||'') + '&rdquo;</p>' +
+          axHtml +
+          '</div>';
+      }
+    });
 
-  function enterBorderHTPreview() {
-    var design = getSelectedDesign(), tex = getSelectedDistress();
-    if (!design || !tex) return;
-    borderHTPreviewSnap = (design.distressHT && design.distressHT[tex.id]) ? design.distressHT[tex.id] : null;
-    borderHTPreviewMode = true;
-    runBorderHTPreview();
-  }
+    document.getElementById('drawer-root').innerHTML =
+      '<div class="overlay" onclick="closeDrawer()"><div class="drawer" onclick="event.stopPropagation()">' +
+      '<div class="drawer-head"><div><div class="drawer-title">' + label + ' &mdash; History</div>' +
+      '<div class="drawer-sub">' + versionNums.length + ' version' + (versionNums.length!==1?'s':'') + ' &middot; ' + f.edit_requests.length + ' request' + (f.edit_requests.length!==1?'s':'') + '</div></div>' +
+      '<button class="drawer-close" onclick="closeDrawer()">&#10005;</button></div>' +
+      '<div class="drawer-body">' + bodyHtml + '</div></div></div>';
+    setTimeout(function(){
+      var body = document.querySelector('.drawer-body');
+      if (body) body.scrollTop = body.scrollHeight;
+    }, 50);
+  };
 
-  function exitBorderHTPreview(commit) {
-    var design = getSelectedDesign(), tex = getSelectedDistress();
-    borderHTPreviewMode = false;
-    if (!commit && design && tex) {
-      if (!design.distressHT) design.distressHT = {};
-      if (borderHTPreviewSnap) design.distressHT[tex.id] = borderHTPreviewSnap;
-      else delete design.distressHT[tex.id];
-      scheduleRender();
-    } else if (commit && design && tex) {
-      if (!borderHTHistory[tex.id]) borderHTHistory[tex.id] = [];
-      borderHTHistory[tex.id].push(borderHTPreviewSnap);
+  window.toggleAllOrders = function() {
+    var btn = document.getElementById('toggle-all-btn');
+    var isExpanded = btn && btn.dataset.state === 'expanded';
+    if (isExpanded) {
+      if (_ordersCache) {
+        _ordersCache.forEach(function(o) {
+          var card = document.getElementById('order-' + o.shopify_order_id);
+          var detail = document.getElementById('detail-' + o.shopify_order_id);
+          if (card && detail) { card.dataset.expanded = 'false'; detail.style.display = 'none'; }
+        });
+      }
+      var bannerArea = document.getElementById('quote-banner-area');
+      if (bannerArea) {
+        bannerArea.querySelectorAll('.order-detail').forEach(function(d){ d.style.display = 'none'; });
+      }
+      if (btn) { btn.dataset.state = 'collapsed'; btn.innerHTML = '&#9660; Expand All'; }
+    } else {
+      if (_ordersCache) {
+        _ordersCache.forEach(function(o) {
+          var card = document.getElementById('order-' + o.shopify_order_id);
+          var detail = document.getElementById('detail-' + o.shopify_order_id);
+          if (card && detail && card.dataset.expanded !== 'true') {
+            card.dataset.expanded = 'true';
+            detail.style.display = 'block';
+            renderOrderDetail(o.shopify_order_id);
+          }
+        });
+      }
+      if (btn) { btn.dataset.state = 'expanded'; btn.innerHTML = '&#9650; Collapse All'; }
     }
-    borderHTPreviewSnap = null;
+  };
+
+  window.toggleAllQuotes = function() {
+    var btn = document.getElementById('toggle-all-quotes-btn');
+    var isExpanded = btn && btn.dataset.state === 'expanded';
+    var qlist = document.getElementById('quotes-list');
+    if (!qlist) return;
+    var details = qlist.querySelectorAll('.order-detail');
+    if (isExpanded) {
+      details.forEach(function(d){ d.style.display = 'none'; });
+      if (btn) { btn.dataset.state = 'collapsed'; btn.innerHTML = '&#9660; Expand All'; }
+    } else {
+      details.forEach(function(d){ d.style.display = 'block'; });
+      if (btn) { btn.dataset.state = 'expanded'; btn.innerHTML = '&#9650; Collapse All'; }
+    }
+  };
+
+  window.closeDrawer = function() { document.getElementById('drawer-root').innerHTML = ''; };
+
+  window.viewImg = function(src, label) {
+    if (!src) return;
+    document.getElementById('viewer-root').innerHTML =
+      '<div class="viewer-overlay" onclick="closeViewer()">' +
+      '<div class="viewer-top"><span class="viewer-lbl">' + label + '</span>' +
+      '<button class="viewer-close" onclick="closeViewer()">&#10005;</button></div>' +
+      '<img src="' + src + '" class="viewer-img" onclick="event.stopPropagation()"></div>';
+  };
+
+  window.closeViewer = function() { document.getElementById('viewer-root').innerHTML = ''; };
+
+  window.downloadFile = function(url) {
+    if (!url || url === '#') return;
+    var dlUrl = url + (url.indexOf('?') === -1 ? '?download=' : '&download=');
+    var a = document.createElement('a');
+    a.href = dlUrl;
+    a.download = '';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  function renderNoOrders(customer) {
+    document.getElementById('app-root').innerHTML =
+      '<div class="customer-header"><div class="customer-eyebrow">Welcome</div>' +
+      '<div class="customer-title">' + (customer.name || customer.email) + '</div></div>' +
+      '<div class="not-found"><h1>No orders yet</h1><p>You don\'t have any orders on file. Once you place an order, it\'ll show up here.</p></div>';
   }
 
-  $('dt-border-ht-commit').addEventListener('click', function() { exitBorderHTPreview(true); });
-  $('dt-border-ht-cancel').addEventListener('click', function() { exitBorderHTPreview(false); });
-
-  /* ---- FULLSCREEN ---- */
-  var dtWrap = document.querySelector('.dt-wrap');
-  var isFullscreen = false;
-  $('dt-fullscreen-btn').addEventListener('click', function() {
-    isFullscreen = !isFullscreen;
-    dtWrap.classList.toggle('dt-fullscreen', isFullscreen);
-    $('dt-fs-icon').innerHTML = isFullscreen
-      ? '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>'
-      : '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
-    setTimeout(syncDisplay, 50);
-  });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && isFullscreen) {
-      isFullscreen = false;
-      dtWrap.classList.remove('dt-fullscreen');
-      $('dt-fs-icon').innerHTML = '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
-      setTimeout(syncDisplay, 50);
-    }
-  });
-
-  renderDesignList();
-  renderDistressList();
-  renderActiveDistresses();
+  function showNotFound() {
+    document.getElementById('app-root').innerHTML =
+      '<div class="not-found"><h1>Portal not found</h1><p>This link may have expired or is incorrect. Please check your email or <a href="https://printergrowth.com/account" style="color:#1a1208">log in to your account</a>.</p></div>';
+  }
 })();
 </script>
+</body>
+</html>
