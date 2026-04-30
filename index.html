@@ -156,6 +156,21 @@
     .quote-banner-dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
     .pulse { display: inline-block; border-radius: 50%; animation: pulse 1.5s infinite; }
+    .dtf-viewer-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.93); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    .dtf-viewer-top { position: absolute; top: 16px; right: 16px; display: flex; gap: 10px; align-items: center; }
+    .dtf-viewer-close { background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; color: #fff; display: flex; align-items: center; justify-content: center; }
+    .dtf-preview-wrap { position: relative; max-width: 85vw; max-height: 65vh; border-radius: 12px; overflow: hidden; }
+    .dtf-preview-bg { position: absolute; inset: 0; border-radius: 12px; }
+    .dtf-checkerboard { background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; background-color: #fff; }
+    .dtf-preview-img { position: relative; z-index: 1; max-width: 85vw; max-height: 65vh; object-fit: contain; display: block; border-radius: 12px; }
+    .dtf-swatches { display: flex; align-items: center; gap: 10px; margin-top: 18px; flex-wrap: wrap; justify-content: center; }
+    .dtf-swatch { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: border-color 0.15s, transform 0.15s; flex-shrink: 0; }
+    .dtf-swatch:hover { transform: scale(1.15); }
+    .dtf-swatch.active { border-color: #00aeef; }
+    .dtf-swatch.light-swatch { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); }
+    .dtf-color-input-wrap { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 4px 8px; }
+    .dtf-color-picker { width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer; padding: 0; background: none; }
+    .dtf-hex-input { background: transparent; border: none; color: #fff; font-size: 12px; font-family: monospace; width: 70px; outline: none; }
   </style>
 </head>
 <body>
@@ -770,8 +785,12 @@
       var fileMeta = f.current_files.length > 1 ? subLabel : (cf.version === 1 ? 'Original file' : 'Version ' + (cf.version - 1));
       var previewSrc = isVectorArt ? (f.original_preview_url || f.preview_url || cf.preview_url || '') : (cf.preview_url || '');
       var thumb = previewSrc ? '<img src="' + previewSrc + '" onerror="this.parentElement.innerHTML=\'<div class=file-thumb-ph>&#128444;</div>\'">' : '<div class="file-thumb-ph">&#128444;</div>';
+      var isDtf = f.service_type && f.service_type.toLowerCase().indexOf('dtf') !== -1;
+      var thumbClick = isDtf
+        ? 'dtfPreview(\'' + (previewSrc||'') + '\')'
+        : 'viewImg(\'' + (previewSrc||'') + '\',\'' + label + ' \u2014 ' + fileLabel + '\')';
       filesListHtml += '<div class="file-row">' +
-        '<div class="file-thumb" onclick="viewImg(\'' + (previewSrc||'') + '\',\'' + label + ' \u2014 ' + fileLabel + '\')">' + thumb + '</div>' +
+        '<div class="file-thumb" onclick="' + thumbClick + '">' + thumb + '</div>' +
         '<div class="file-info"><div class="file-label">' + fileLabel + '</div><div class="file-meta">' + fileMeta + '</div></div>' +
         (f.latest_version > 1 ? '<a href="' + (cf.download_url||'#') + '" class="file-dl" target="_blank">&#11015; Download</a>' : '') +
       '</div>';
@@ -1145,6 +1164,86 @@
   };
 
   window.closeViewer = function() { document.getElementById('viewer-root').innerHTML = ''; };
+
+  window.dtfPreview = function(src) {
+    if (!src) return;
+    var swatches = [
+      { color: 'transparent', label: 'Transparent', checker: true },
+      { color: '#ffffff', label: 'White', light: true },
+      { color: '#f5f0e8', label: 'Cream', light: true },
+      { color: '#d1d5db', label: 'Light Grey', light: true },
+      { color: '#6b7280', label: 'Grey' },
+      { color: '#1a1208', label: 'Black' },
+      { color: '#1e3a5f', label: 'Navy' },
+      { color: '#1d4ed8', label: 'Blue' },
+      { color: '#15803d', label: 'Green' },
+      { color: '#b91c1c', label: 'Red' },
+      { color: '#7e22ce', label: 'Purple' },
+      { color: '#f59e0b', label: 'Gold', light: true },
+    ];
+    var currentBg = 'transparent';
+
+    function buildViewer(activeBg) {
+      var root = document.getElementById('viewer-root');
+      var swatchHtml = swatches.map(function(s) {
+        var isActive = s.color === activeBg;
+        var style = s.checker
+          ? 'background-image:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0px;background-color:#fff;'
+          : 'background:' + s.color + ';';
+        return '<div class="dtf-swatch' + (s.light ? ' light-swatch' : '') + (isActive ? ' active' : '') + '" style="' + style + '" title="' + s.label + '" onclick="window.dtfSetBg(\'' + s.color + '\',\'' + src + '\')"></div>';
+      }).join('');
+
+      var bgStyle = activeBg === 'transparent'
+        ? 'background-image:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0px;background-color:#fff;border-radius:12px;'
+        : 'background:' + activeBg + ';border-radius:12px;';
+
+      root.innerHTML =
+        '<div class="dtf-viewer-overlay" onclick="closeViewer()">' +
+        '<div class="dtf-viewer-top"><button class="dtf-viewer-close" onclick="closeViewer()">&#10005;</button></div>' +
+        '<div class="dtf-preview-wrap" onclick="event.stopPropagation()">' +
+          '<div class="dtf-preview-bg" style="' + bgStyle + '"></div>' +
+          '<img src="' + src + '" class="dtf-preview-img">' +
+        '</div>' +
+        '<div class="dtf-swatches" onclick="event.stopPropagation()">' +
+          swatchHtml +
+          '<div class="dtf-color-input-wrap">' +
+            '<input type="color" class="dtf-color-picker" id="dtf-color-picker" value="#ffffff" onchange="window.dtfSetBg(this.value,\'' + src + '\')" onclick="event.stopPropagation()">' +
+            '<input type="text" class="dtf-hex-input" id="dtf-hex-input" placeholder="#ffffff" maxlength="7" onchange="window.dtfHexInput(this.value,\'' + src + '\')" onclick="event.stopPropagation()">' +
+          '</div>' +
+        '</div>' +
+        '</div>';
+    }
+
+    buildViewer('transparent');
+  };
+
+  window.dtfSetBg = function(color, src) {
+    var bg = document.querySelector('.dtf-preview-bg');
+    if (!bg) return;
+    if (color === 'transparent') {
+      bg.style.cssText = 'position:absolute;inset:0;background-image:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0px;background-color:#fff;border-radius:12px;';
+    } else {
+      bg.style.cssText = 'position:absolute;inset:0;background:' + color + ';border-radius:12px;';
+    }
+    // Update active swatch
+    document.querySelectorAll('.dtf-swatch').forEach(function(s){
+      s.classList.remove('active');
+      if (s.title && s.style.background === color) s.classList.add('active');
+    });
+    // Update hex input
+    var hex = document.getElementById('dtf-hex-input');
+    var picker = document.getElementById('dtf-color-picker');
+    if (hex && color !== 'transparent') hex.value = color;
+    if (picker && color !== 'transparent') picker.value = color;
+  };
+
+  window.dtfHexInput = function(val, src) {
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+      window.dtfSetBg(val, src);
+      var picker = document.getElementById('dtf-color-picker');
+      if (picker) picker.value = val;
+    }
+  };
 
   window.downloadFile = function(url) {
     if (!url || url === '#') return;
