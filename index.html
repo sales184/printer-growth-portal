@@ -169,7 +169,8 @@
     .dtf-swatch.active { border-color: #00aeef; }
     .dtf-swatch.light-swatch { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); }
     .dtf-color-input-wrap { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 4px 8px; }
-    .dtf-color-picker { width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer; padding: 0; background: none; }
+    .dtf-color-picker-wrap { width: 32px; height: 32px; border-radius: 50%; position: relative; flex-shrink: 0; background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red); border: 2px solid rgba(255,255,255,0.4); cursor: pointer; }
+    .dtf-color-picker { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; border: none; cursor: pointer; padding: 0; opacity: 0; }
     .dtf-hex-input { background: transparent; border: none; color: #fff; font-size: 12px; font-family: monospace; width: 70px; outline: none; }
   </style>
 </head>
@@ -1207,7 +1208,7 @@
         '<div class="dtf-swatches" onclick="event.stopPropagation()">' +
           swatchHtml +
           '<div class="dtf-color-input-wrap">' +
-            '<input type="color" class="dtf-color-picker" id="dtf-color-picker" value="#ffffff" onchange="window.dtfSetBg(this.value,\'' + src + '\')" onclick="event.stopPropagation()">' +
+            '<div class="dtf-color-picker-wrap" onclick="event.stopPropagation()"><input type="color" class="dtf-color-picker" id="dtf-color-picker" value="#ffffff" oninput="window.dtfSetBg(this.value,\'' + src + '\')" onclick="event.stopPropagation()"></div>' +
             '<input type="text" class="dtf-hex-input" id="dtf-hex-input" placeholder="#ffffff" maxlength="7" onchange="window.dtfHexInput(this.value,\'' + src + '\')" onclick="event.stopPropagation()">' +
           '</div>' +
         '</div>' +
