@@ -18,6 +18,13 @@
     .customer-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 700; color: #1a1208; }
     .customer-meta { display: flex; gap: 16px; color: #7a6a55; font-size: 13px; margin-top: 10px; flex-wrap: wrap; }
     .btn-order-more { background: #00aeef; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+    .transfers-banner { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .transfers-banner-text { display: flex; flex-direction: column; gap: 3px; }
+    .transfers-banner-title { font-size: 13px; font-weight: 600; color: #1a1208; }
+    .transfers-banner-promo { font-size: 12px; color: #059669; }
+    .transfers-banner-promo strong { font-family: monospace; font-size: 12px; background: #dcfce7; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px; }
+    .btn-order-transfers { background: #059669; color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 8px; text-decoration: none; white-space: nowrap; font-family: 'DM Sans', sans-serif; flex-shrink: 0; }
+    .btn-order-transfers:hover { background: #047857; }
     .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid #e8e2d8; }
     .tab-btn { padding: 10px 24px; font-size: 14px; font-weight: 600; color: #a89880; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', sans-serif; transition: color 0.2s, border-color 0.2s; }
     .tab-btn.active { color: #00aeef; border-bottom-color: #00aeef; }
@@ -311,6 +318,7 @@
     quotes.forEach(function(q){ uniqueQuoteNumbers[q.quote_number || q.id] = true; });
     var quoteGroupCount = Object.keys(uniqueQuoteNumbers).length;
     var quoteBadge = quoteGroupCount ? '<span class="tab-badge">' + quoteGroupCount + '</span>' : '';
+    html += '<div class="transfers-banner"><div class="transfers-banner-text"><div class="transfers-banner-title">Order DTF Transfers from our printing partner</div><div class="transfers-banner-promo">Use code <strong>PRINTERGROWTH</strong> for 15% off your first order</div></div><a href="https://www.transferexpress.com/?ref=printergrowth" class="btn-order-transfers" target="_blank">Order Transfers &rarr;</a></div>';
     html += '<div class="tabs">';
     html += '<button class="tab-btn active" id="tab-btn-orders" onclick="window.switchTab(\'orders\')">Orders</button>';
     html += '<button class="tab-btn" id="tab-btn-quotes" onclick="window.switchTab(\'quotes\')">Quotes' + quoteBadge + '</button>';
