@@ -720,7 +720,7 @@
     card.id = 'order-' + order.shopify_order_id;
     card.dataset.expanded = 'false';
     var filesCount = order.files.length;
-    var inProg  = order.files.filter(function(f){ var s = (f.revision_status || '').toLowerCase(); return s === 'in_progress' || s === 'revision'; }).length;
+    var inProg  = order.files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'in_progress'; }).length;
     var delivered = order.files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'delivered'; }).length;
     var orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     var status = inProg ? 'In progress' : (delivered === filesCount && filesCount > 0 ? 'Ready' : 'Awaiting artwork');
@@ -752,9 +752,9 @@
     if (!order) return;
     var detail = document.getElementById('detail-' + orderId);
     var files = order.files;
-    var inProg  = files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'revision'; }).length;
+    var inProg  = files.filter(function(f){ return (f.revision_status || '').toLowerCase() === 'in_progress'; }).length;
     var revised = files.filter(function(f){ return f.is_revised && (f.revision_status || '').toLowerCase() === 'delivered'; }).length;
-    var waiting = files.filter(function(f){ var s = (f.revision_status || '').toLowerCase(); return s !== 'delivered' && s !== 'in_progress' && s !== 'revision'; }).length;
+    var waiting = files.filter(function(f){ return (f.revision_status || '').toLowerCase() !== 'delivered' && (f.revision_status || '').toLowerCase() !== 'in_progress'; }).length;
     var html = '<div class="files-header"><div><div class="files-title">Your Artwork Files</div>';
     html += '<div class="files-subtitle">' + files.length + ' design' + (files.length!==1?'s':'');
     if (revised) html += ' &middot; ' + revised + ' revised';
@@ -772,7 +772,7 @@
   }
 
   function buildCard(f,idx,ce) {
-    var inProg     = (f.revision_status || '').toLowerCase() === 'revision';
+    var inProg     = (f.revision_status || '').toLowerCase() === 'in_progress';
     var isDelivered = (f.revision_status || '').toLowerCase() === 'delivered';
     var isAwaiting  = !isDelivered && !inProg;
     var isVectorArt = f.service_type && f.service_type.toLowerCase().indexOf('vector') !== -1;
